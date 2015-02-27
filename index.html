@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Demo</title>
+		<link rel="stylesheet" href="index.css">
+	</head>
+	<body>
+		<p id="demo"></p>
+		<canvas id="canvas">
+			<!--<img id="broken" src="broken_lcd.png"></img>-->
+		</canvas>
+		<p id="image_data"></p>
+		<script src="jquery-2.1.3.js"></script>
+		<script src="bs/js/bootstrap.js"></script>
+		<!--bs/css/bootstrap.css-->
+		<!--bs/css/bootstrap-theme.css-->
+		<!--bs/fonts/glyphicons-halfings-regular.?????-->
+		<!--(self)index.html-->
+		<!--index.css-->
+		<script src="index.js"></script>
+		<script>
+	$( document ).ready(function() {
+		updateClock();
+		setInterval(function () {updateClock()}, 1000);
+		console.log($("#canvas").css("color"));
+		image();
+	});
+		</script>
+	</body>
+</html>
+
+<!--
+$( document ).ready()
+A page can't be manipulated safely until the document is "ready." jQuery 
+detects this state of readiness for you. Code included inside 
+$( document ).ready() will only run once the page Document Object Model (DOM) 
+is ready for JavaScript code to execute. Code included inside 
+$( window ).load(function() { ... }) will run once the entire page (images or 
+iframes), not just the DOM, is ready.
+
+However, both objects contain the same DOM element. The .get() method is useful
+ for testing if two jQuery objects have the same DOM element.
+ 
+ 
+As a getter, the .css() method is valuable. However, it should generally be 
+avoided as a setter in production-ready code, because it's generally best to 
+keep presentational information out of JavaScript code. Instead, write CSS
+ rules for classes that describe the various visual states, and then change 
+ the class on the element.
+ 
+ The event bubbling that occurs affords us the ability to add cells via Ajax 
+ for example, without having to bind events directly to those cells since the
+ parent table is listening for clicks and is therefore notified of clicks on 
+ its children. If we weren't using delegation, we'd have to constantly bind 
+ events for every cell that's added which is not only a performance issue, but
+ could also become a maintenance nightmare.-->
