@@ -1,5 +1,4 @@
 var digits = [];
-
 //var newObject = jQuery.extend(true, {}, oldObject);//deep copy
 function image() {
 	var canvas = document.getElementById("canvas");
@@ -8,39 +7,82 @@ function image() {
 	//create the digits 0-9 for later use by the clock update function
 	base_image.onload = function() {
 		canvas.width = base_image.width * 6;
-		canvas.height = base_image.height;
+		canvas.height = base_image.height * 2;
 		context.drawImage(base_image, 0, 0);
-		var data = context.getImageData(0, 0, base_image.width, base_image.height).data;
-		var j;
-		for (var i = 0; i < data.length; i+=4) {
-			for (j = 0; j < 10; j++) {
-				if (data[i] == j && data[i+1] == j && data[i+2] == j) {
-					digits[j].push(data[i]);
-					digits[j].push(data[i+1]);
-					digits[j].push(data[i+2]);
-					digits[j].push(data[i+3]);
+		var imageData = context.getImageData(0, 0, base_image.width, base_image.height);
+		for (var j = 0; j < 10; j++) {
+			digits[j] = context.createImageData(base_image.width, base_image.height);//all black copy of dimensions
+			for (var i = 0; i < imageData.data.length; i+=4) {
+				if (fillDigit(imageData.data, i, j)){//(imageData.data[i] == j+1 && imageData.data[i+1] == j+1 && imageData.data[i+2] == j+1) {//data is arranged RGBARGBA...
+					digits[j].data[i] = 255;
+					digits[j].data[i+1] = 255;
+					digits[j].data[i+2] = 0;
+					digits[j].data[i+3] = 255;
 				}
 				else {
-					digits[j].push(data[i]);
-					digits[j].push(data[i+1]);
-					digits[j].push(data[i+2]);
-					digits[j].push(data[i+3]);
+					digits[j].data[i] = imageData.data[i];
+					digits[j].data[i+1] = imageData.data[i+1];
+					digits[j].data[i+2] = imageData.data[i+2];
+					digits[j].data[i+3] = imageData.data[i+3];
 				}
 			}
-			//console.log(data[i], data[i+1], data[i+2], data[i+3]);//expected RGBA in order
 		}
-		//console.log(data.BYTES_PER_ELEMENT, data.length);
-		//context.putImageData(data,0,0);
+		//display everything in the canvas for testing
+		context.putImageData(digits[0],0,0);
+		context.putImageData(digits[1],base_image.width*1,0);
+		context.putImageData(digits[2],base_image.width*2,0);
+		context.putImageData(digits[3],base_image.width*3,0);
+		context.putImageData(digits[4],base_image.width*4,0);
+		context.putImageData(digits[5],0,base_image.height);
+		context.putImageData(digits[6],base_image.width*1,base_image.height);
+		context.putImageData(digits[7],base_image.width*2,base_image.height);
+		context.putImageData(digits[8],base_image.width*3,base_image.height);
+		context.putImageData(digits[9],base_image.width*4,base_image.height);
 	}
 	//base_image.crossOrigin = "use-credentials";//'anonymous';
 	base_image.src = 'broken_lcd.png'; //src needs to be specified after onload event	
 }
+
 /*123456,23,12754,12734,6723,16734,167345,123,1234567,123467
-0      1  2     3     4    5     6      7   8       9
+  0      1  2     3     4    5     6      7   8       9
    128 64 32 16 8 4 2 1
      1  2  3  4 5 6 7 8
-'''
 trans = [252, 96, 218, 242, 102, 182, 190, 224, 254, 246]*/
+function fillDigit(idd, i, j) {//data is arranged RGBARGBA...
+	//fill 1
+	if (j != 1 && j != 4){//0 2 3 5 6 7 8 9
+		if (idd[i] == 1 && idd[i + 1] == 1 && idd[i + 2] == 1){
+			return true;}}
+	//fill 2
+	if (j != 5 && j != 6)//0 1 2 3 4 7 8 9
+		if (idd[i] == 2 && idd[i + 1] == 2 && idd[i + 2] == 2)
+			return true;
+	//fill 3
+	if (j != 2)//0 1 3 4 5 6 7 8 9
+		if (idd[i] == 3 && idd[i + 1] == 3 && idd[i + 2] == 3)
+			return true;
+	//fill 4
+	if (j != 1 && j != 4 && j != 7)//0 2 3 5 6 8 9
+		if (idd[i] == 4 && idd[i + 1] == 4 && idd[i + 2] == 4)
+			return true;
+	//fill 5
+	if (j == 0 || j == 2 || j == 6 || j == 8)//0 2 6 8
+		if (idd[i] == 5 && idd[i + 1] == 5 && idd[i + 2] == 5)
+			return true;
+	//fill 6
+	if (j != 1 && j != 2 && j != 3 && j != 7)//0 4 5 6 8 9
+		if (idd[i] == 6 && idd[i + 1] == 6 && idd[i + 2] == 6)
+			return true;
+	//fill 7
+	if (j != 0 && j != 1 && j != 7)//2 3 4 5 6 8 9
+		if (idd[i] == 7 && idd[i + 1] == 7 && idd[i + 2] == 7)
+			return true;
+	//fill 8
+	if (false)//(never...)
+		if (idd[i] == 8 && idd[i + 1] == 8 && idd[i + 2] == 8)
+			return true;
+	return false;
+}
 
 var twenty_four_hour_clock = false;
 function updateClock() {
