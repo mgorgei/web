@@ -21,10 +21,11 @@
 		<script src="index.js"></script>
 		<script>
 	$( document ).ready(function() {
-		updateClock();
-		setInterval(function () {updateClock()}, 1000);
-		console.log($("#canvas").css("color"));
-		image();
+		drawDigits();
+		$("#canvas").on("onloadeddata", function() {
+			updateClock();
+			setInterval(function () {updateClock()}, 1000);
+		});
 	});
 		</script>
 	</body>
