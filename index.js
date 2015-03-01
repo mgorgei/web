@@ -1,10 +1,13 @@
-var digits = [];
 //var newObject = jQuery.extend(true, {}, oldObject);//jQuery deep copy
+var digits = [];
+var twenty_four_hour_clock = false;
+var clockIntervalID;
+
+//create the digits 0-9 for later use by the clock update function
 function drawDigits() {
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext('2d');
 	var base_image = new Image();
-	//create the digits 0-9 for later use by the clock update function
 	base_image.onload = function() {
 		canvas.width = base_image.width * 6;
 		canvas.height = base_image.height * 1;
@@ -13,10 +16,10 @@ function drawDigits() {
 		var colorDigit = $("#canvas").css("color").slice(4, -1).split(',');
 		var colorDigitOff = $("#canvas").css("outline-color").slice(4, -1).split(',');
 		var colorBackground = $("#canvas").css("background-color").slice(4, -1).split(',');
-		var colorOutline;//?
+		var colorOutline = $("#canvas").css("outline-color").slice(4, -1).split(',');
 		var imageData = context.getImageData(0, 0, base_image.width, base_image.height);
 		for (var j = 0; j < 10; j++) {
-			digits[j] = context.createImageData(base_image.width, base_image.height);//all black copy of dimensions
+			digits[j] = context.createImageData(base_image.width, base_image.height);
 			for (var i = 0; i < imageData.data.length; i+=4) {
 				var result = fillPixel(imageData.data, i, j);
 				if (result == 1) {
@@ -38,12 +41,12 @@ function drawDigits() {
 					digits[j].data[i+3] = 255;
 				}
 				else if (result == -2) {
-					digits[j].data[i] = 0;
-					digits[j].data[i+1] = 0;
-					digits[j].data[i+2] = 0;
+					digits[j].data[i] = 0;//colorOutline[0];
+					digits[j].data[i+1] = 0;//colorOutline[1];
+					digits[j].data[i+2] = 0;//colorOutline[2];
 					digits[j].data[i+3] = 255;
 				}
-				else {//result == 0
+				else {
 					digits[j].data[i] = imageData.data[i];
 					digits[j].data[i+1] = imageData.data[i+1];
 					digits[j].data[i+2] = imageData.data[i+2];
@@ -62,8 +65,7 @@ function drawDigits() {
 -1: background
  0: source
  1: digit on
- 2: digit off
-*/
+ 2: digit off*/
 function fillPixel(idd, i, j) {
 	//fill 1
 	if (idd[i] == 1 && idd[i + 1] == 1 && idd[i + 2] == 1) {
@@ -115,38 +117,69 @@ function fillPixel(idd, i, j) {
 	//background
 	if (idd[i] == 0 && idd[i + 1] == 255 && idd[i + 2] == 0)
 		return - 1;
+	//outline
+	if (idd[i] == 0 && idd[i + 1] == 0 && idd[i + 2] == 0)
+		return - 2;
 	return 0;
 }
 
-var twenty_four_hour_clock = false;
 function updateClock() {
 	var d = new Date();
-	var offset =  d.getTimezoneOffset() / 60;
+	var offset =  d.getTimezoneOffset() / 60;//automatically handled?
 	var seconds = d.getSeconds();
 	var minutes = d.getMinutes();
 	var hours = d.getHours();
+	var AMPM = false;
 	if (!twenty_four_hour_clock)
-		if (hours > 12)
+		if (hours > 12) {
 			hours = hours - 12;
+			AMPM = true;
+		}
 	var day = d.getDate();
 	var month = d.getMonth();
 	var year = d.getFullYear();
-	month = getMonthText(month);
-	$("#demo").text([year, month, day, hours, minutes, seconds].join(':'));
+	var monthText = getMonthText(month);
+	$("#demo").text([year, monthText, day, hours, minutes, seconds].join(':'));
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext('2d');
-	/*if (((hours - 1) % 12) > 9)*/
-		context.putImageData(digits[Math.floor(hours / 10)], 0, 0);
-	/*else
-		throw a blank rectangle up to fill the empty space of hours 1-9
-		*/
-	context.putImageData(digits[hours % 10], digits[0].width * 1, 0);
-	context.putImageData(digits[Math.floor(minutes / 10)], digits[0].width * 2, 0);
-	context.putImageData(digits[minutes % 10], digits[0].width * 3, 0);
+	if (false) {//display everything in the canvas for testing
+		context.putImageData(digits[0],0,0);
+		context.putImageData(digits[1],digits[0].width*1,0);
+		context.putImageData(digits[2],digits[0].width*2,0);
+		context.putImageData(digits[3],digits[0].width*3,0);
+		context.putImageData(digits[4],digits[0].width*4,0);
+		context.putImageData(digits[5],0,digits[0].height);
+		context.putImageData(digits[6],digits[0].width*1,digits[0].height);
+		context.putImageData(digits[7],digits[0].width*2,digits[0].height);
+		context.putImageData(digits[8],digits[0].width*3,digits[0].height);
+		context.putImageData(digits[9],digits[0].width*4,digits[0].height);
+		return 0;
+	}
+	if (true) {//remove hours later
+		/*if (((hours - 1) % 12) > 9)*/
+			context.putImageData(digits[Math.floor(hours / 10)], 0, 0);
+		/*else
+			throw a blank rectangle up to fill the empty space of hours 1-9
+			*/
+		context.putImageData(digits[hours % 10], digits[0].width * 1, 0);
+	}
+	if (true) {//remove minutes later
+		context.putImageData(digits[Math.floor(minutes / 10)], digits[0].width * 2, 0);
+		context.putImageData(digits[minutes % 10], digits[0].width * 3, 0);
+	}
 	if (true) { //later have an option for displaying seconds or not
 		context.putImageData(digits[Math.floor(seconds / 10)], digits[0].width * 4, 0);
 		context.putImageData(digits[seconds % 10], digits[0].width * 5, 0);
 	}
+	//check all timers (loaded once via SQL / ajax?)
+	if (Date.now() > +new Date(year, month, day, 17, 10).getTime() ||
+	(Date.now() > +new Date(year, month, day, 11, 5).getTime() && 
+	Date.now() < +new Date(year, month, day, 11, 20).getTime())) {
+		//signal this timer has fired to avoid hall of echoes
+		//ask user to cancel audio?
+		//time when alert is no longer useful (late to work)
+		$("#audio")[0].play();//shows as undefined when typed live in the console, but plays anyway
+	}		
 }
 
 function isLeapYear(year) {
