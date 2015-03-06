@@ -10,7 +10,7 @@ function drawDigits() {
 	var context = canvas.getContext('2d');
 	var base_image = new Image();
 	base_image.onload = function() {
-		canvas.width = base_image.width * 6 - 32;//-32 is pixel width of semi-colon
+		canvas.width = base_image.width * 6 - lengthOfSemiColon;
 		canvas.height = base_image.height * 1;
 		context.drawImage(base_image, 0, 0);
 		//get CSS colors
@@ -201,23 +201,27 @@ function updateClock() {
 		context.putImageData(digits[9],digits[0].width*4,digits[0].height);
 		return 0;
 	}
+	var fillColor = $("#canvas").css("background-color").slice(4, -1).split(',');
+	context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
 	if (true) {//remove hours conditionally
-		if (hours > 9)
+		if (hours > 9) {
 			context.putImageData(digits[Math.floor(hours / 10)], 0, 0);
+			context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+			}
 		else {
-			var fillColor = $("#canvas").css("background-color").slice(4, -1).split(',');
-			context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
 			context.fillRect(0, 0, digits[0].width, digits[0].height);
 			}
-		context.putImageData(digits[hours % 10], digits[0].width * 1 -lengthOfSemiColon, 0);
+		context.putImageData(digits[hours % 10], digits[0].width * 1, 0);
 	}
 	if (true) {//remove minutes conditionally
 		context.putImageData(digits[Math.floor(minutes / 10)], digits[0].width * 2, 0);
-		context.putImageData(digits[minutes % 10], digits[0].width * 3 -lengthOfSemiColon, 0);
+		context.fillRect(digits[0].width * 3 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+		context.putImageData(digits[minutes % 10], digits[0].width * 3, 0);
 	}
 	if (true) { //remove seconds conditionally
 		context.putImageData(digits[Math.floor(seconds / 10)], digits[0].width * 4, 0);
-		context.putImageData(digits[seconds % 10], digits[0].width * 5 -lengthOfSemiColon, 0);
+		context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+		context.putImageData(digits[seconds % 10], digits[0].width * 5, 0);
 	}
 	/*if (true { //milliseconds if hours are not displayed??
 		var zzz;
