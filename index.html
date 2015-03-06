@@ -10,6 +10,14 @@
 		<canvas id="canvas">
 			<!--<img id="broken" src="broken_lcd.png"></img>-->
 		</canvas>
+		<form action="" method="post">
+			<div>
+				<label for="timer_entry" id="timer_label">Enter a new timer:</label>
+				<input id="timer_entry" type="text" title="HH:MM[:SS]" oninput="validateInput()" aria-labelledby="timer_label timer_warning"/>
+				<label id="timer_warning"></label><!--indicates status of validation of typed text-->
+				<button type="button"><!--"submit"-->Add Timer</button>
+			</div>
+		</form>
 		<audio id="audio" src="ding.wav" preload control_s>
 			Your browser does not support the <code>audio</code> element.
 			<!--attribution: corsica_s / Tim Kahn on freesound.org via Creative Commons license 
@@ -29,7 +37,8 @@
 		drawDigits();
 		$("#canvas").on("onloadeddata", function() {
 			updateClock();
-			clockIntervalID = setInterval(function () {updateClock()}, 5000);
+			clockIntervalID = setInterval(function () {updateClock()}, 1000);
+			getTimers();
 		});
 	});
 		</script>

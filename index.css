@@ -4,3 +4,6 @@
 	outline-color: #E9E8DA;
 	background-color: #E2DEB1;
 }
+#timer_warning {
+	background-color: red;
+}

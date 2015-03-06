@@ -2,6 +2,7 @@
 var digits = [];
 var twenty_four_hour_clock = false;
 var clockIntervalID;
+var lengthOfSemiColon = 32;//cannot be measured
 
 //create the digits 0-9 for later use by the clock update function
 function drawDigits() {
@@ -9,7 +10,7 @@ function drawDigits() {
 	var context = canvas.getContext('2d');
 	var base_image = new Image();
 	base_image.onload = function() {
-		canvas.width = base_image.width * 6;
+		canvas.width = base_image.width * 6 - 32;//-32 is pixel width of semi-colon
 		canvas.height = base_image.height * 1;
 		context.drawImage(base_image, 0, 0);
 		//get CSS colors
@@ -57,7 +58,7 @@ function drawDigits() {
 		$("#canvas").triggerHandler("onloadeddata");
 	}
 	//base_image.crossOrigin = "use-credentials";//'anonymous';
-	base_image.src = 'broken_lcd.png'; //src needs to be specified after onload event	
+	base_image.src = 'digit.png'; //src needs to be specified after onload event	
 }
 
 /*return values
@@ -111,8 +112,8 @@ function fillPixel(idd, i, j) {
 	}
 	//fill 8 (semi-colon)
 	if (idd[i] == 8 && idd[i + 1] == 8 && idd[i + 2] == 8) {
-		if (false)//(never...?)
-			return 0;
+		if (true)//(always...?)
+			return 1;
 	}
 	//background
 	if (idd[i] == 0 && idd[i + 1] == 255 && idd[i + 2] == 0)
@@ -121,6 +122,45 @@ function fillPixel(idd, i, j) {
 	if (idd[i] == 0 && idd[i + 1] == 0 && idd[i + 2] == 0)
 		return - 2;
 	return 0;
+}
+
+/*supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is interpreted as a time for today by the parser
+rfc2822
+*/
+function validateInput() {
+	var today = new Date();
+	var d = Date.parse(Number(today.getMonth() + 1) + ' ' + Number(today.getDay() + 1) + ' ' + today.getFullYear() + ' ' + $("input").val());//apparently date is locale dependent since it is taking US formatting outside the spec
+	if(! isNaN(d)) {
+		console.log(new Date(d));
+		$("#timer_warning").text("");
+	}
+	else {
+		console.log('invalid');
+		$("#timer_warning").text("Expecting HH:MM:[:SS]");
+	}
+}
+
+function getTimers() {
+	return;
+	/*connect to database
+	get the timers; set the timer objects
+	
+-- Database: `mgorgeix_db`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Timer`
+--
+
+CREATE TABLE IF NOT EXISTS `Timer` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` time NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+	*/
 }
 
 function updateClock() {
@@ -135,6 +175,12 @@ function updateClock() {
 			hours = hours - 12;
 			AMPM = true;
 		}
+	if (hours == 0) {
+		if (twenty_four_hour_clock)
+			hours = 24;
+		else
+			hours = 12;
+	}
 	var day = d.getDate();
 	var month = d.getMonth();
 	var year = d.getFullYear();
@@ -155,31 +201,40 @@ function updateClock() {
 		context.putImageData(digits[9],digits[0].width*4,digits[0].height);
 		return 0;
 	}
-	if (true) {//remove hours later
-		/*if (((hours - 1) % 12) > 9)*/
+	if (true) {//remove hours conditionally
+		if (hours > 9)
 			context.putImageData(digits[Math.floor(hours / 10)], 0, 0);
-		/*else
-			throw a blank rectangle up to fill the empty space of hours 1-9
-			*/
-		context.putImageData(digits[hours % 10], digits[0].width * 1, 0);
+		else {
+			var fillColor = $("#canvas").css("background-color").slice(4, -1).split(',');
+			context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
+			context.fillRect(0, 0, digits[0].width, digits[0].height);
+			}
+		context.putImageData(digits[hours % 10], digits[0].width * 1 -lengthOfSemiColon, 0);
 	}
-	if (true) {//remove minutes later
+	if (true) {//remove minutes conditionally
 		context.putImageData(digits[Math.floor(minutes / 10)], digits[0].width * 2, 0);
-		context.putImageData(digits[minutes % 10], digits[0].width * 3, 0);
+		context.putImageData(digits[minutes % 10], digits[0].width * 3 -lengthOfSemiColon, 0);
 	}
-	if (true) { //later have an option for displaying seconds or not
+	if (true) { //remove seconds conditionally
 		context.putImageData(digits[Math.floor(seconds / 10)], digits[0].width * 4, 0);
-		context.putImageData(digits[seconds % 10], digits[0].width * 5, 0);
+		context.putImageData(digits[seconds % 10], digits[0].width * 5 -lengthOfSemiColon, 0);
 	}
+	/*if (true { //milliseconds if hours are not displayed??
+		var zzz;
+	}*/
 	//check all timers (loaded once via SQL / ajax?)
-	if (Date.now() > +new Date(year, month, day, 17, 10).getTime() ||
+	if ((Date.now() > +new Date(year, month, day, 17, 10).getTime() && Date.now() < +new Date(year, month, day, 17, 20).getTime())||
 	(Date.now() > +new Date(year, month, day, 11, 5).getTime() && 
 	Date.now() < +new Date(year, month, day, 11, 20).getTime())) {
 		//signal this timer has fired to avoid hall of echoes
 		//ask user to cancel audio?
 		//time when alert is no longer useful (late to work)
-		$("#audio")[0].play();//shows as undefined when typed live in the console, but plays anyway
+		$("#audio")[0].play();
 	}		
+}
+
+function strToHex(str) {
+	return ('0' + parseInt(str).toString(16)).substr(-2);
 }
 
 function isLeapYear(year) {
