@@ -1,7 +1,7 @@
 #canvas {
 	color: #403D18;
-	column-rule-color: #E9E8DA;/*seriously need to investigate supported custom naming...zzz this is unrecognized for canvas or unrecognized altogether*/
 	outline-color: #E9E8DA;
+	border-bottom-color: #000000;
 	background-color: #E2DEB1;
 }
 #timer_warning {

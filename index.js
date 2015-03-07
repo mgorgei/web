@@ -26,7 +26,7 @@ function drawDigits() {
 		var colorDigit = $("#canvas").css("color").slice(4, -1).split(',');
 		var colorDigitOff = $("#canvas").css("outline-color").slice(4, -1).split(',');
 		var colorBackground = $("#canvas").css("background-color").slice(4, -1).split(',');
-		var colorOutline = $("#canvas").css("outline-color").slice(4, -1).split(',');
+		var colorOutline = $("#canvas").css("border-bottom-color").slice(4, -1).split(',');
 		var imageData = context.getImageData(0, 0, base_image.width, base_image.height);
 		for (var j = 0; j < 10; j++) {
 			digits[j] = context.createImageData(base_image.width, base_image.height);
@@ -51,9 +51,9 @@ function drawDigits() {
 					digits[j].data[i+3] = 255;
 				}
 				else if (result == -2) {
-					digits[j].data[i] = 0;//colorOutline[0];
-					digits[j].data[i+1] = 0;//colorOutline[1];
-					digits[j].data[i+2] = 0;//colorOutline[2];
+					digits[j].data[i] = colorOutline[0];
+					digits[j].data[i+1] = colorOutline[1];
+					digits[j].data[i+2] = colorOutline[2];
 					digits[j].data[i+3] = 255;
 				}
 				else {
@@ -75,8 +75,7 @@ var colorEnum = {
 	background: -1, 
 	source:      0, 
 	digiton:     1, 
-	digitoff:    2
-};
+	digitoff:    2};
 Object.freeze(colorEnum);
 function fillPixel(idd, i, j) {
 	//fill 1
