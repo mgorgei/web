@@ -3,6 +3,15 @@ var digits = [];
 var twenty_four_hour_clock = false;
 var clockIntervalID;
 var lengthOfSemiColon = 32;//cannot be measured
+var timeAlarmExpires = 300;//in seconds
+
+/*Timer "class"
+  0 alarm
+  1 timer*/
+function Timer(time, type) {
+	this.time = time;
+	this.type = type;
+}
 
 //create the digits 0-9 for later use by the clock update function
 function drawDigits() {
@@ -61,7 +70,7 @@ function drawDigits() {
 	base_image.src = 'digit.png'; //src needs to be specified after onload event	
 }
 
-/*return values
+/*return values... replace with enum
 -2: outline
 -1: background
  0: source
@@ -69,64 +78,112 @@ function drawDigits() {
  2: digit off*/
 function fillPixel(idd, i, j) {
 	//fill 1
-	if (idd[i] == 1 && idd[i + 1] == 1 && idd[i + 2] == 1) {
-		if (j != 1 && j != 4)//0 2 3 5 6 7 8 9
-			return 1;
-		return 2;
+	if (idd[i] == 1 && idd[i + 1] == 1) {
+		if (j != 1 && j != 4) { //0 2 3 5 6 7 8 9
+			if (idd[i + 2] == 1)
+				return 1;
+			return -2;
+		}
+		else {
+			if (idd[i + 2] == 1)
+				return 2;
+			return -1;
+		}
 	}
 	//fill 2
-	if (idd[i] == 2 && idd[i + 1] == 2 && idd[i + 2] == 2) {
-		if (j != 5 && j != 6)//0 1 2 3 4 7 8 9
-			return 1;
-		return 2;
+	if (idd[i] == 2 && idd[i + 1] == 2) {
+		if (j != 5 && j != 6) {//0 1 2 3 4 7 8 9
+			if (idd[i + 2] == 2)
+				return 1;
+			return -2;
+		}
+		else {
+			if (idd[i + 2] == 2)
+				return 2;
+			return -1;		
+		}
 	}
 	//fill 3
-	if (idd[i] == 3 && idd[i + 1] == 3 && idd[i + 2] == 3) {
-		if (j != 2)//0 1 3 4 5 6 7 8 9
-			return 1;
-		return 2;
+	if (idd[i] == 3 && idd[i + 1] == 3) {
+		if (j != 2) {//0 1 3 4 5 6 7 8 9
+			if (idd[i + 2] == 3)
+				return 1;
+			return -2;
+		}
+		else {
+			if (idd[i + 2] == 3)
+				return 2;
+			return -1;
+		}
 	}
 	//fill 4
-	if (idd[i] == 4 && idd[i + 1] == 4 && idd[i + 2] == 4) {
-		if (j != 1 && j != 4 && j != 7)//0 2 3 5 6 8 9
-			return 1;
-		return 2;
+	if (idd[i] == 4 && idd[i + 1] == 4) {
+		if (j != 1 && j != 4 && j != 7) {//0 2 3 5 6 8 9
+			if (idd[i + 2] == 4)
+				return 1;
+			return -2;
+		}
+		else {
+			if (idd[i + 2] == 4)
+				return 2;
+			return -1;
+		}
 	}
 	//fill 5
-	if (idd[i] == 5 && idd[i + 1] == 5 && idd[i + 2] == 5) {
-		if (j == 0 || j == 2 || j == 6 || j == 8)//0 2 6 8
-			return 1;
-		return 2;
+	if (idd[i] == 5 && idd[i + 1] == 5) {
+		if (j == 0 || j == 2 || j == 6 || j == 8) {//0 2 6 8
+			if (idd[i + 2] == 5)
+				return 1;
+			return -2;
+		}
+		else {
+			if (idd[i + 2] == 5)
+				return 2;
+			return -1;
+		}
 	}
 	//fill 6
-	if (idd[i] == 6 && idd[i + 1] == 6 && idd[i + 2] == 6) {
-		if (j != 1 && j != 2 && j != 3 && j != 7)//0 4 5 6 8 9
-			return 1;
-		return 2;
+	if (idd[i] == 6 && idd[i + 1] == 6) {
+		if (j != 1 && j != 2 && j != 3 && j != 7) {//0 4 5 6 8 9
+			if (idd[i + 2] == 6)
+				return 1;
+			return -2;
+		}
+		else {
+			if (idd[i + 2] == 6)
+				return 2;
+			return -1;
+		}
 	}
 	//fill 7
-	if (idd[i] == 7 && idd[i + 1] == 7 && idd[i + 2] == 7) {
-		if (j != 0 && j != 1 && j != 7)//2 3 4 5 6 8 9
-			return 1;
-		return 2;
+	if (idd[i] == 7 && idd[i + 1] == 7) {
+		if (j != 0 && j != 1 && j != 7) {//2 3 4 5 6 8 9
+			if (idd[i + 2] == 7)
+				return 1;
+			return -2;
+		}
+		else {
+			if (idd[i + 2] == 7)
+				return 2;
+			return -1;
+		}
 	}
 	//fill 8 (semi-colon)
-	if (idd[i] == 8 && idd[i + 1] == 8 && idd[i + 2] == 8) {
-		if (true)//(always...?)
-			return 1;
-	}
+	if (idd[i] == 8 && idd[i + 1] == 8 && idd[i + 2] == 8)
+		return 1;
+	if (idd[i] == 0 && idd[i + 1] == 255 && idd[i + 2] == 255)
+		return -2;
 	//background
 	if (idd[i] == 0 && idd[i + 1] == 255 && idd[i + 2] == 0)
 		return - 1;
-	//outline
+	/*//outline (all outlines are specifically tagged
 	if (idd[i] == 0 && idd[i + 1] == 0 && idd[i + 2] == 0)
-		return - 2;
+		return - 2;*/
 	return 0;
 }
 
 /*supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is interpreted as a time for today by the parser
-rfc2822
-*/
+rfc2822*/
 function validateInput() {
 	var today = new Date();
 	var d = Date.parse(Number(today.getMonth() + 1) + ' ' + Number(today.getDay() + 1) + ' ' + today.getFullYear() + ' ' + $("input").val());//apparently date is locale dependent since it is taking US formatting outside the spec
