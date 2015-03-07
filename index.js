@@ -70,53 +70,52 @@ function drawDigits() {
 	base_image.src = 'digit.png'; //src needs to be specified after onload event	
 }
 
-/*return values... replace with enum
--2: outline
--1: background
- 0: source
- 1: digit on
- 2: digit off*/
+var colorEnum = {
+	outline:    -2, 
+	background: -1, 
+	source:      0, 
+	digiton:     1, 
+	digitoff:    2
+};
+Object.freeze(colorEnum);
 function fillPixel(idd, i, j) {
 	//fill 1
 	var x = fp(1, [0, 2, 3, 5, 6, 7, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
 	if (x != 127)
 		return x;
 	//fill 2
-	var x = fp(2, [0, 1, 2, 3, 4, 7, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(2, [0, 1, 2, 3, 4, 7, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
 	if (x != 127)
 		return x;
 	//fill 3
-	var x = fp(3, [0, 1, 3, 4, 5, 6, 7, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(3, [0, 1, 3, 4, 5, 6, 7, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
 	if (x != 127)
 		return x;
 	//fill 4
-	var x = fp(4, [0, 2, 3, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(4, [0, 2, 3, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
 	if (x != 127)
 		return x;
 	//fill 5
-	var x = fp(5, [0, 2, 6, 8], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(5, [0, 2, 6, 8], idd[i], idd[i + 1], idd[i + 2], j);
 	if (x != 127)
 		return x;
 	//fill 6
-	var x = fp(6, [0, 4, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(6, [0, 4, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
 	if (x != 127)
 		return x;
 	//fill 7
-	var x = fp(7, [2, 3, 4, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(7, [2, 3, 4, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
 	if (x != 127)
 		return x;
 	//fill 8 (semi-colon)
 	if (idd[i] == 8 && idd[i + 1] == 8 && idd[i + 2] == 8)
 		return 1;
 	if (idd[i] == 0 && idd[i + 1] == 255 && idd[i + 2] == 255)
-		return -2;
+		return colorEnum.outline;
 	//background
 	if (idd[i] == 0 && idd[i + 1] == 255 && idd[i + 2] == 0)
-		return - 1;
-	/*//outline (all outlines are specifically tagged
-	if (idd[i] == 0 && idd[i + 1] == 0 && idd[i + 2] == 0)
-		return - 2;*/
-	return 0;
+		return colorEnum.background;
+	return colorEnum.source;
 }
 
 function fp(matching_color, valid_digits, red, green, blue, index) {
@@ -129,13 +128,13 @@ function fp(matching_color, valid_digits, red, green, blue, index) {
 			}
 		if (result) {
 			if (blue == matching_color)
-				return 1;
-			return -2;
+				return colorEnum.digiton;
+			return colorEnum.outline;
 		}
 		else {
 			if (blue == matching_color)
-				return 2;
-			return -1;
+				return colorEnum.digitoff;
+			return colorEnum.background;
 		}
 	}
 	return 127; //fail code
