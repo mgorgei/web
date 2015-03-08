@@ -23,13 +23,12 @@ function drawDigits() {
 		canvas.width = base_image.width * 6 - lengthOfSemiColon;
 		canvas.height = base_image.height * 1;
 		context.drawImage(base_image, 0, 0);
-		//get CSS colors
 		var colorDigit = $("#canvas").css("color").slice(4, -1).split(',');
 		var colorDigitOff = $("#canvas").css("outline-color").slice(4, -1).split(',');
 		var colorBackground = $("#canvas").css("background-color").slice(4, -1).split(',');
 		var colorOutline = $("#canvas").css("border-bottom-color").slice(4, -1).split(',');
 		var imageData = context.getImageData(0, 0, base_image.width, base_image.height);
-		for (var j = 0; j < 10; j++) {
+		for (var j = 0; j < 11; j++) {
 			digits[j] = context.createImageData(base_image.width, base_image.height);
 			for (var i = 0; i < imageData.data.length; i+=4) {
 				var result = fillPixel(imageData.data[i], imageData.data[i + 1], imageData.data[i + 2], j);
@@ -79,6 +78,27 @@ var colorEnum = {
 	digitoff:    2};
 Object.freeze(colorEnum);
 function fillPixel(red, green, blue, j) {
+	function fp(matching_color, valid_digits, red, green, blue, index) {
+		if (red == matching_color && green == matching_color) {
+			var result = false;
+			for (var i = 0; i < valid_digits.length; i++)
+				if (index == valid_digits[i]) {
+					result = true;
+					break;
+				}
+			if (result) {
+				if (blue == matching_color)
+					return colorEnum.digiton;
+				return colorEnum.outline;
+			}
+			else {
+				if (blue == matching_color)
+					return colorEnum.digitoff;
+				return colorEnum.background;
+			}
+		}
+		return 127; //fail code
+	}
 	//fill 1
 	var x = fp(1, [0, 2, 3, 5, 6, 7, 8, 9], red, green, blue, j);
 	if (x != 127)
@@ -118,33 +138,12 @@ function fillPixel(red, green, blue, j) {
 	return colorEnum.source;
 }
 
-function fp(matching_color, valid_digits, red, green, blue, index) {
-	if (red == matching_color && green == matching_color) {
-		var result = false;
-		for (var i = 0; i < valid_digits.length; i++)
-			if (index == valid_digits[i]) {
-				result = true;
-				break;
-			}
-		if (result) {
-			if (blue == matching_color)
-				return colorEnum.digiton;
-			return colorEnum.outline;
-		}
-		else {
-			if (blue == matching_color)
-				return colorEnum.digitoff;
-			return colorEnum.background;
-		}
-	}
-	return 127; //fail code
-}
-
 /*supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is interpreted as a time for today by the parser
 rfc2822*/
 function validateInput() {
 	var today = new Date();
-	var d = Date.parse(Number(today.getMonth() + 1) + ' ' + Number(today.getDay() + 1) + ' ' + today.getFullYear() + ' ' + $("input").val());//apparently date is locale dependent since it is taking US formatting outside the spec
+	//apparently date is locale dependent since it is taking US formatting outside the spec
+	var d = Date.parse(Number(today.getMonth() + 1) + ' ' + Number(today.getDay() + 1) + ' ' + today.getFullYear() + ' ' + $("input").val());
 	if(! isNaN(d)) {
 		console.log(new Date(d));
 		$("#timer_warning").text("");
@@ -162,30 +161,11 @@ function getTimers() {
 	timers[0] = new Timer(Date.parse(today + '11:05'), 0);
 	timers[1] = new Timer(Date.parse(today + '17:10'), 0);
 	timers[2] = new Timer(Date.parse(today + '23:20'), 0);
-	/*connect to database
-	get the timers; set the timer objects
-	
--- Database: `mgorgeix_db`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `Timer`
---
-
-CREATE TABLE IF NOT EXISTS `Timer` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` time NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
-
-	*/
 }
 
 function updateClock() {
 	var d = new Date();
-	var offset =  d.getTimezoneOffset() / 60;//automatically handled?
+	var offset =  d.getTimezoneOffset() / 60;
 	var seconds = d.getSeconds();
 	var minutes = d.getMinutes();
 	var hours = d.getHours();
@@ -219,6 +199,7 @@ function updateClock() {
 		context.putImageData(digits[7],digits[0].width*2,digits[0].height);
 		context.putImageData(digits[8],digits[0].width*3,digits[0].height);
 		context.putImageData(digits[9],digits[0].width*4,digits[0].height);
+		context.putImageData(digits[10],digits[0].width*5,digits[0].height);
 		return 0;
 	}
 	var fillColor = $("#canvas").css("background-color").slice(4, -1).split(',');
