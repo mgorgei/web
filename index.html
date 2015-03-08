@@ -18,6 +18,9 @@
 				<button type="button"><!--"submit"-->Add Timer</button>
 			</div>
 		</form>
+		<table id="timer_table">
+			<!--alternating colors, dismiss-->
+		</table>
 		<audio id="audio" src="ding.wav" preload control_s>
 			Your browser does not support the <code>audio</code> element.
 			<!--attribution: corsica_s / Tim Kahn on freesound.org via Creative Commons license 
@@ -70,4 +73,12 @@ keep presentational information out of JavaScript code. Instead, write CSS
  events for every cell that's added which is not only a performance issue, but
  could also become a maintenance nightmare.
  
- lookup syntax for division between jquery / dom / javascript object-->
+ lookup syntax for division between jquery / dom / javascript object
+ 
+ 
+It is often the case that an anchor tag is used with the onclick event. In 
+order to prevent the page from refreshing, href is often set to either "#" or
+ "javascript:void(0)". Both of these values can lead to some unexpected errors
+ when copying links and opening links in a new tab and/or window. Be aware of 
+ this for usability reasons, and when users do use anchor tags and you prevent
+ default behavior.-->

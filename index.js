@@ -3,15 +3,16 @@ var digits = [];
 var twenty_four_hour_clock = false;
 var clockIntervalID;
 var lengthOfSemiColon = 32;//cannot be measured
-var timeAlarmExpires = 300;//in seconds
+var timeAlarmExpires = 600;//in seconds
 
 /*Timer "class"
   0 alarm
   1 timer*/
 function Timer(time, type) {
-	this.time = time;
+	this.time = new Date(time);
 	this.type = type;
 }
+var timers = [];
 
 //create the digits 0-9 for later use by the clock update function
 function drawDigits() {
@@ -31,7 +32,7 @@ function drawDigits() {
 		for (var j = 0; j < 10; j++) {
 			digits[j] = context.createImageData(base_image.width, base_image.height);
 			for (var i = 0; i < imageData.data.length; i+=4) {
-				var result = fillPixel(imageData.data, i, j);
+				var result = fillPixel(imageData.data[i], imageData.data[i + 1], imageData.data[i + 2], j);
 				if (result == 1) {
 					digits[j].data[i] = colorDigit[0];
 					digits[j].data[i+1] = colorDigit[1];
@@ -77,42 +78,42 @@ var colorEnum = {
 	digiton:     1, 
 	digitoff:    2};
 Object.freeze(colorEnum);
-function fillPixel(idd, i, j) {
+function fillPixel(red, green, blue, j) {
 	//fill 1
-	var x = fp(1, [0, 2, 3, 5, 6, 7, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	var x = fp(1, [0, 2, 3, 5, 6, 7, 8, 9], red, green, blue, j);
 	if (x != 127)
 		return x;
 	//fill 2
-	x = fp(2, [0, 1, 2, 3, 4, 7, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(2, [0, 1, 2, 3, 4, 7, 8, 9], red, green, blue, j);
 	if (x != 127)
 		return x;
 	//fill 3
-	x = fp(3, [0, 1, 3, 4, 5, 6, 7, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(3, [0, 1, 3, 4, 5, 6, 7, 8, 9], red, green, blue, j);
 	if (x != 127)
 		return x;
 	//fill 4
-	x = fp(4, [0, 2, 3, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(4, [0, 2, 3, 5, 6, 8, 9], red, green, blue, j);
 	if (x != 127)
 		return x;
 	//fill 5
-	x = fp(5, [0, 2, 6, 8], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(5, [0, 2, 6, 8], red, green, blue, j);
 	if (x != 127)
 		return x;
 	//fill 6
-	x = fp(6, [0, 4, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(6, [0, 4, 5, 6, 8, 9], red, green, blue, j);
 	if (x != 127)
 		return x;
 	//fill 7
-	x = fp(7, [2, 3, 4, 5, 6, 8, 9], idd[i], idd[i + 1], idd[i + 2], j);
+	x = fp(7, [2, 3, 4, 5, 6, 8, 9], red, green, blue, j);
 	if (x != 127)
 		return x;
 	//fill 8 (semi-colon)
-	if (idd[i] == 8 && idd[i + 1] == 8 && idd[i + 2] == 8)
+	if (red == 8 && green == 8 && blue == 8)
 		return 1;
-	if (idd[i] == 0 && idd[i + 1] == 255 && idd[i + 2] == 255)
+	if (red == 0 && green == 255 && blue == 255)
 		return colorEnum.outline;
 	//background
-	if (idd[i] == 0 && idd[i + 1] == 255 && idd[i + 2] == 0)
+	if (red == 0 && green == 255 && blue == 0)
 		return colorEnum.background;
 	return colorEnum.source;
 }
@@ -155,7 +156,12 @@ function validateInput() {
 }
 
 function getTimers() {
-	return;
+	var today = new Date();
+	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDay() + 1) + ' ' + today.getFullYear() + ' ';
+	timers = [];
+	timers[0] = new Timer(Date.parse(today + '11:05'), 0);
+	timers[1] = new Timer(Date.parse(today + '17:10'), 0);
+	timers[2] = new Timer(Date.parse(today + '23:20'), 0);
 	/*connect to database
 	get the timers; set the timer objects
 	
@@ -237,18 +243,15 @@ function updateClock() {
 		context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
 		context.putImageData(digits[seconds % 10], digits[0].width * 5, 0);
 	}
-	/*if (true { //milliseconds if hours are not displayed??
-		var zzz;
-	}*/
-	//check all timers (loaded once via SQL / ajax?)
-	if ((Date.now() > +new Date(year, month, day, 17, 10).getTime() && Date.now() < +new Date(year, month, day, 17, 20).getTime())||
-	(Date.now() > +new Date(year, month, day, 11, 5).getTime() && 
-	Date.now() < +new Date(year, month, day, 11, 20).getTime())) {
-		//signal this timer has fired to avoid hall of echoes
-		//ask user to cancel audio?
-		//time when alert is no longer useful (late to work)
-		$("#audio")[0].play();
-	}		
+	//check all timers
+	for (var i = 0; i < timers.length; i++)
+		if (timers[i].type == 0)
+			if (Date.now() > timers[i].time.getTime() && Date.now() < +new Date(timers[i].time.getTime() + timeAlarmExpires * 1000).getTime()) {
+				$("#audio")[0].play();
+				break;
+			}
+		else//(timers[i].type == 1)
+			continue;
 }
 
 function strToHex(str) {
