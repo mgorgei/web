@@ -140,10 +140,14 @@ function fillPixel(red, green, blue, j) {
 
 /*supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is interpreted as a time for today by the parser
 rfc2822*/
-function validateInput() {
+function validateInput() {//and constrain
+	//reject non-numeric characters
+	//hours can be 0-23, first character can only be 1 or 2; 3-9 will autotab to minutes; two valid characters will also autotab
+	//minutes can be 0-59, first character 1-5; 6-9 will autotab to seconds; two autotab
+	//seconds can be 0-59, ^^
 	var today = new Date();
-	//apparently date is locale dependent since it is taking US formatting outside the spec
-	var d = Date.parse(Number(today.getMonth() + 1) + ' ' + Number(today.getDay() + 1) + ' ' + today.getFullYear() + ' ' + $("input").val());
+	var d = Date.parse(Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
+		$("#timer_hours").val() + ':' + $("#timer_minutes").val() + ':' + $("#timer_seconds").val());
 	if(! isNaN(d)) {
 		console.log(new Date(d));
 		$("#timer_warning").text("");
@@ -164,6 +168,39 @@ function getTimers() {
 }
 
 function updateClock() {
+	function isLeapYear(year) {
+		if (year % 400 == 0)
+			return true;
+		if (year % 100 == 0)
+			return false;
+		return year % 4 == 0;
+	}
+
+	function getMonthText(month) {
+		if (month == 0)
+			return 'January';
+		else if (month == 1)
+			return 'February';
+		else if (month == 2)
+			return 'March';
+		else if (month == 3)
+			return 'April';
+		else if (month == 4)
+			return 'May';
+		else if (month == 5)
+			return 'June';
+		else if (month == 6)
+			return 'July';
+		else if (month == 7)
+			return 'August';
+		else if (month == 8)
+			return 'September';
+		else if (month == 9)
+			return 'October';
+		else if (month == 10)
+			return 'November';
+		return 'December';
+	}
 	var d = new Date();
 	var offset =  d.getTimezoneOffset() / 60;
 	var seconds = d.getSeconds();
@@ -237,38 +274,4 @@ function updateClock() {
 
 function strToHex(str) {
 	return ('0' + parseInt(str).toString(16)).substr(-2);
-}
-
-function isLeapYear(year) {
-    if (year % 400 == 0)
-        return true;
-    if (year % 100 == 0)
-        return false;
-    return year % 4 == 0;
-}
-
-function getMonthText(month) {
-	if (month == 0)
-		return 'January';
-	else if (month == 1)
-		return 'February';
-	else if (month == 2)
-		return 'March';
-	else if (month == 3)
-		return 'April';
-	else if (month == 4)
-		return 'May';
-	else if (month == 5)
-		return 'June';
-	else if (month == 6)
-		return 'July';
-	else if (month == 7)
-		return 'August';
-	else if (month == 8)
-		return 'September';
-	else if (month == 9)
-		return 'October';
-	else if (month == 10)
-		return 'November';
-	return 'December';
 }
