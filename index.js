@@ -140,20 +140,37 @@ function fillPixel(red, green, blue, j) {
 
 /*supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is interpreted as a time for today by the parser
 rfc2822*/
-function validateInput() {//and constrain
-	//reject non-numeric characters
-	//hours can be 0-23, first character can only be 1 or 2; 3-9 will autotab to minutes; two valid characters will also autotab
-	//minutes can be 0-59, first character 1-5; 6-9 will autotab to seconds; two autotab
-	//seconds can be 0-59, ^^
+//having newly valid input or typing ':' on a valid input should auto tab over to the next point
+function validateInput() {
+	function vi(i, jq){
+		return (isNaN(i) || i == "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
+	}
 	var today = new Date();
-	var d = Date.parse(Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
-		$("#timer_hours").val() + ':' + $("#timer_minutes").val() + ':' + $("#timer_seconds").val());
+	var HH = $("#timer_hours").val();
+	if (vi(HH, "#timer_hours")) {
+		$("#timer_hours").val(1);
+		HH = 1;
+	}
+	HH--;//hours is zero-based internally, since min is 1 instead, it doesn't allow a leading 0 for hours as input like minutes / seconds do
+	var MM = $("#timer_minutes").val();
+	if (vi(MM, "#timer_minutes")) {
+		$("#timer_minutes").val(0);
+		MM = 0;
+	}
+	var SS = $("#timer_seconds").val();
+	if (vi(SS, "#timer_seconds")) {
+		$("#timer_seconds").val(0);
+		SS = 0;
+	}
+	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
+		HH.toString() + ':' + MM.toString() + ':' + SS.toString();
+	var d = Date.parse(ps);
 	if(! isNaN(d)) {
-		console.log(new Date(d));
+		console.log(new Date(d), ps);
 		$("#timer_warning").text("");
 	}
 	else {
-		console.log('invalid');
+		console.log('invalid', ps);
 		$("#timer_warning").text("Expecting HH:MM:[:SS]");
 	}
 }

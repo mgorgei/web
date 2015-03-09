@@ -11,16 +11,21 @@
 			<!--<img id="broken" src="broken_lcd.png"></img>-->
 		</canvas>
 		<form id="timer_entry" action="" method="post" oninput="validateInput()">
-			<!--<label for="timer_entry" id="timer_label">Enter a new timer:</label>
-			<input id="timer_entry" type="text" title="HH:MM[:SS]" oninput="validateInput()" aria-labelledby="timer_label timer_warning"/>
-			-->
 			<label for="timer_hours" id="timer_hours_label">HH:</label>
-				<input id="timer_hours" onKeyUp="test(event)"/>
+				<input id="timer_hours" name="timer_hours" type="number" min=1 max=24 placeholder="HH (1-24)"/>
 			<label for="timer_minutes" id="timer_minutes_label">MM:</label>
-				<input id="timer_minutes"/>
+				<input id="timer_minutes" name="timer_minutes" type="number" min=0 max=59 placeholder="MM (0-59)"/>
 			<label for="timer_seconds" id="timer_seconds_label">SS:</label>
-				<input id="timer_seconds"/>
+				<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="SS (0-59)"/>
 			<label id="timer_warning"></label><!--indicates status of validation of typed text-->
+			<span>
+			<!--<span id="span_radio0" onclick="$('#radio0').click();">-->
+				<input id="radio0" type="radio" name="radio" value=0 checked="checked">Alarm</input>
+			<!--</span>-->
+			<!--<span id="span_radio1" onclick="$('#radio1').click();">-->
+				<input id="radio1" type="radio" name="radio" value=1>Stopwatch</input>
+			<!--</span>-->
+			</span>
 			<button type="button" onclick=""><!--"submit"-->Add Timer</button>
 		</form>
 		<table id="timer_table">
@@ -48,8 +53,11 @@
 			clockIntervalID = setInterval(function () {updateClock()}, 1000);
 			getTimers();
 		});
-		function test(evt){ alert(evt.key)};
+
 	});
+	function xyz(event){ 
+		alert(event.key);
+	};
 		</script>
 	</body>
 </html>
