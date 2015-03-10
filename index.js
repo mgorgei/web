@@ -168,11 +168,13 @@ function validateInput() {
 	if(! isNaN(d)) {
 		console.log(new Date(d), ps);
 		$("#timer_warning").text("");
+		return ps;
 	}
 	else {
 		console.log('invalid', ps);
 		$("#timer_warning").text("Expecting HH:MM:[:SS]");
 	}
+	return false;
 }
 
 function getTimers() {
@@ -182,6 +184,20 @@ function getTimers() {
 	timers[0] = new Timer(Date.parse(today + '11:05'), 0);
 	timers[1] = new Timer(Date.parse(today + '17:10'), 0);
 	timers[2] = new Timer(Date.parse(today + '23:20'), 0);
+}
+
+function attemptNewTimer() {
+	var ps = validateInput();
+	if (ps) {
+		timers[timers.length] = new Timer(ps, $('input[name=radio]:checked', '#timer_entry').val());
+		for (var i = 0; i < timers.length - 1; i++) //check for existing duplicates, delete them if they exist
+			if (timers[i].time.getTime() == timers[timers.length - 1].time.getTime() && timers[i].type == timers[timers.length - 1].type) {
+				timers.splice(timers.length - 1, 1);
+				break;
+			}
+		if (i == timers.length - 1)
+			return;//add new timer to DOM or ... refresh entire DOM
+	}
 }
 
 function updateClock() {
