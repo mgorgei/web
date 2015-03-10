@@ -148,8 +148,10 @@ function validateInput() {
 	var today = new Date();
 	var HH = $("#timer_hours").val();
 	if (vi(HH, "#timer_hours")) {
-		$("#timer_hours").val(1);
-		HH = 1;
+		var timer_type = $('input[name=radio]:checked', '#timer_entry').val();
+		$("#timer_hours").val(timer_type);
+		HH = timer_type;
+		//how can I support leading zero while rejecting it as a valid time?
 	}
 	HH--;//hours is zero-based internally, since min is 1 instead, it doesn't allow a leading 0 for hours as input like minutes / seconds do
 	var MM = $("#timer_minutes").val();
@@ -193,7 +195,7 @@ function attemptNewTimer() {
 		for (var i = 0; i < timers.length - 1; i++) //check for existing duplicates, delete them if they exist
 			if (timers[i].time.getTime() == timers[timers.length - 1].time.getTime() && timers[i].type == timers[timers.length - 1].type) {
 				timers.splice(timers.length - 1, 1);
-				break;
+				break;//should only have one dupe at least locally
 			}
 		if (i == timers.length - 1)
 			return;//add new timer to DOM or ... refresh entire DOM

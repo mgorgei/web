@@ -12,7 +12,7 @@
 		</canvas>
 		<form id="timer_entry" action="" method="post" oninput="validateInput()">
 			<label for="timer_hours" id="timer_hours_label">HH:</label>
-				<input id="timer_hours" name="timer_hours" type="number" min=1 max=24 placeholder="HH (1-24)"/>
+				<input id="timer_hours" name="timer_hours" type="number" min=0 max=24 placeholder="HH (0-24)"/><!--needs to support 0 hours to support timer.type=1 (stopwatch)-->
 			<label for="timer_minutes" id="timer_minutes_label">MM:</label>
 				<input id="timer_minutes" name="timer_minutes" type="number" min=0 max=59 placeholder="MM (0-59)"/>
 			<label for="timer_seconds" id="timer_seconds_label">SS:</label>
