@@ -149,8 +149,8 @@ function validateInput() {
 	var HH = $("#timer_hours").val();
 	if (vi(HH, "#timer_hours")) {
 		var timer_type = $('input[name=radio]:checked', '#timer_entry').val();
-		$("#timer_hours").val(timer_type);
-		HH = timer_type;
+		$("#timer_hours").val(1 - timer_type);
+		HH = 1 - timer_type;
 		//how can I support leading zero while rejecting it as a valid time?
 	}
 	HH--;//hours is zero-based internally, since min is 1 instead, it doesn't allow a leading 0 for hours as input like minutes / seconds do
@@ -193,16 +193,20 @@ function buildTimerDOM() {
 	$('#table_body > *').remove();//clear table first since we're doing it lazy way first
 	$('#table_body').append("<tr><th>" + "Type" + "</th><th>" + "Time" + "</th><th>" + "Remaining" + "</th></tr>");
 	for (var i = 0; i < timers.length; i++) {
-		$('#table_body').append("<tr><td>" + timers[i].type + "</td><td>" + timers[i].time + "</td><td>" + timers[i].name + "</td></tr>");
+		addTimerDOM(i);
 	}
 }
 
-function selectTimer() {
+function addTimerDOM(i) {
+	$('#table_body').append("<tr><td>" + timers[i].type + "</td><td>" + timers[i].time + "</td><td>" + timers[i].name + "</td></tr>");
+}
+
+function selectTimer(event/*<-why is that not required? event is global or somehow inherited? how does that operate with multiple active events?*/) {
 	var target = $(event.target);
 	//clear all tr with the selected class
 	$("#table_body > *").removeClass("timer_table_selected");//transition out with animation?
 	if (target.is("td")) {
-		console.log($(target).parent().index());//1 indexed because of <th> at 0?
+		//console.log($(target).parent().index());
 		//set 'selected' class to selected element
 		$(target.parent()).addClass("timer_table_selected");
 	}
@@ -210,9 +214,9 @@ function selectTimer() {
 
 function deleteTimer() {
 	var index = $(".timer_table_selected").index()
-	if (index != -1) {
+	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
 		timers.splice(index - 1, 1);//delete selected index
-		buildTimerDOM();
+		$('#table_body tr')[index].remove()//buildTimerDOM();
 	}
 	else
 		alert("Nothing selected!");
@@ -222,13 +226,16 @@ function attemptNewTimer() {
 	var ps = validateInput();
 	if (ps) {
 		timers[timers.length] = new Timer(ps, $('input[name=radio]:checked', '#timer_entry').val());
+		console.log(ps, $('input[name=radio]:checked', '#timer_entry').val());
+		var dupe = false;
 		for (var i = 0; i < timers.length - 1; i++) //check for existing duplicates, delete them if they exist
 			if (timers[i].time.getTime() == timers[timers.length - 1].time.getTime() && timers[i].type == timers[timers.length - 1].type) {
 				timers.splice(timers.length - 1, 1);
-				break;//should only have one dupe at least locally
+				dupe = true;
+				break;//should only have one dupe at least locally; also not designed to properly navigate the loop using this structure after a deletion
 			}
-		if (i == timers.length - 1)//timers.length was not modified (no delete) and the loop fully completed
-			buildTimerDOM();
+		if (!dupe)//i == timers.length - 1)//timers.length was not modified (no delete) and the loop fully completed
+			addTimerDOM(i);
 	}
 }
 
@@ -331,10 +338,12 @@ function updateClock() {
 		if (timers[i].type == 0)
 			if (Date.now() > timers[i].time.getTime() && Date.now() < +new Date(timers[i].time.getTime() + timeAlarmExpires * 1000).getTime()) {
 				$("#audio")[0].play();
-				break;
+				//break;
 			}
-		else//(timers[i].type == 1)
+		else {//(timers[i].type == 1)
 			continue;
+			$("#audio")[0].play();
+		}
 }
 
 function strToHex(str) {
