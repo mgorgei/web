@@ -28,9 +28,12 @@
 			</span>
 			<button type="button" onclick="attemptNewTimer()"><!--"submit"-->Add Timer</button>
 		</form>
-		<table id="timer_table">
-			<!--alternating colors, dismiss-->
+		<table id="timer_table" <!--class="timer_table"-->>
+			<tbody id="table_body">
+				<!--alternating colors, dismiss-->
+			</tbody>
 		</table>
+		<button type="button" onclick="deleteTimer()"><!--"submit"-->Delete Timer</button>
 		<audio id="audio" src="ding.wav" preload control_s>
 			Your browser does not support the <code>audio</code> element.
 			<!--attribution: corsica_s / Tim Kahn on freesound.org via Creative Commons license 
@@ -46,6 +49,7 @@
 		<!--index.css-->
 		<script src="index.js"></script>
 		<script>
+	var gg;
 	$( document ).ready(function() {
 		drawDigits();
 		$("#canvas").on("onloadeddata", function() {
@@ -53,7 +57,9 @@
 			clockIntervalID = setInterval(function () {updateClock()}, 1000);
 			getTimers();
 		});
-
+		$("#table_body").on("click", function( event ) {
+			selectTimer();
+		});
 	});
 		</script>
 	</body>

@@ -181,11 +181,41 @@ function validateInput() {
 
 function getTimers() {
 	var today = new Date();
-	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDay() + 1) + ' ' + today.getFullYear() + ' ';
+	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ';
 	timers = [];
 	timers[0] = new Timer(Date.parse(today + '11:05'), 0);
 	timers[1] = new Timer(Date.parse(today + '17:10'), 0);
 	timers[2] = new Timer(Date.parse(today + '23:20'), 0);
+	buildTimerDOM();
+}
+
+function buildTimerDOM() {
+	$('#table_body > *').remove();//clear table first since we're doing it lazy way first
+	$('#table_body').append("<tr><th>" + "Type" + "</th><th>" + "Time" + "</th><th>" + "Remaining" + "</th></tr>");
+	for (var i = 0; i < timers.length; i++) {
+		$('#table_body').append("<tr><td>" + timers[i].type + "</td><td>" + timers[i].time + "</td><td>" + timers[i].name + "</td></tr>");
+	}
+}
+
+function selectTimer() {
+	var target = $(event.target);
+	//clear all tr with the selected class
+	$("#table_body > *").removeClass("timer_table_selected");//transition out with animation?
+	if (target.is("td")) {
+		console.log($(target).parent().index());//1 indexed because of <th> at 0?
+		//set 'selected' class to selected element
+		$(target.parent()).addClass("timer_table_selected");
+	}
+}
+
+function deleteTimer() {
+	var index = $(".timer_table_selected").index()
+	if (index != -1) {
+		timers.splice(index - 1, 1);//delete selected index
+		buildTimerDOM();
+	}
+	else
+		alert("Nothing selected!");
 }
 
 function attemptNewTimer() {
@@ -197,8 +227,8 @@ function attemptNewTimer() {
 				timers.splice(timers.length - 1, 1);
 				break;//should only have one dupe at least locally
 			}
-		if (i == timers.length - 1)
-			return;//add new timer to DOM or ... refresh entire DOM
+		if (i == timers.length - 1)//timers.length was not modified (no delete) and the loop fully completed
+			buildTimerDOM();
 	}
 }
 

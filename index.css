@@ -8,6 +8,22 @@
 	background-color: red;
 }
 
-#timer_table {
-	//
+#timer_table th{
+	background-color:blue;
+}
+
+#timer_table tr:nth-child(odd){
+	background-color:red;
+}
+
+#timer_table tr.timer_table_selected:nth-child(odd) {
+	background-color:yellow;
+}
+
+#timer_table tr:nth-child(even){
+	background-color:green;
+}
+
+#timer_table tr.timer_table_selected:nth-child(even) {
+	background-color:orange;
 }
