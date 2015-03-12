@@ -20,15 +20,15 @@
 			<label id="timer_warning"></label><!--indicates status of validation of typed text-->
 			<span>
 			<!--<span id="span_radio0" onclick="$('#radio0').click();">-->
-				<input id="radio0" type="radio" name="radio" value=0 checked="checked">Alarm</input>
+				<input id="radio0" type="radio" name="radio" class="radio" value=0 checked="checked">Alarm</input>
 			<!--</span>-->
 			<!--<span id="span_radio1" onclick="$('#radio1').click();">-->
-				<input id="radio1" type="radio" name="radio" value=1>Stopwatch</input>
+				<input id="radio1" type="radio" name="radio" class="radio" value=1>Stopwatch</input>
 			<!--</span>-->
 			</span>
 			<button type="button" onclick="attemptNewTimer()"><!--"submit"-->Add Timer</button>
 		</form>
-		<table id="timer_table" <!--class="timer_table"-->>
+		<table id="timer_table" <!--class="timer_table"-->
 			<tbody id="table_body">
 				<!--alternating colors, dismiss-->
 			</tbody>
@@ -59,6 +59,9 @@
 		});
 		$("#table_body").on("click", function( event ) {
 			selectTimer(event);
+		});
+		$("#timer_entry input[name=radio]").on("click", function () {
+			$("timer_entry, input[name=timer_hours]").attr('min', 1 - this.value);
 		});
 	});
 		</script>

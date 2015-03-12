@@ -9,7 +9,15 @@ var timeAlarmExpires = 600;//in seconds
   0 alarm
   1 timer*/
 function Timer(time, type) {
-	this.time = new Date(time);
+	if (type == 0)
+		this.time = new Date(time);
+	else {//the time given is milliseconds relative to today, so strip today midnight out to get the time from now that the timer will expire
+		var today = new Date();
+		today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+		gg = time;
+		this.time = new Date(Date.now() - today.getTime() + new Date(time).getTime());
+		console.log(today.getTime(), Date.now(), time, Date.now() - today.getTime());
+	}
 	this.type = type;
 }
 var timers = [];
@@ -165,7 +173,7 @@ function validateInput() {
 		SS = 0;
 	}
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
-		HH.toString() + ':' + MM.toString() + ':' + SS.toString();
+		Number(HH.toString() + 1) + ':' + MM.toString() + ':' + SS.toString();
 	var d = Date.parse(ps);
 	if(! isNaN(d)) {
 		console.log(new Date(d), ps);
@@ -198,7 +206,8 @@ function buildTimerDOM() {
 }
 
 function addTimerDOM(i) {
-	$('#table_body').append("<tr><td>" + timers[i].type + "</td><td>" + timers[i].time + "</td><td>" + timers[i].name + "</td></tr>");
+	var type = ['Alarm', 'Stop Watch'];
+	$('#table_body').append("<tr><td>" + type[timers[i].type] + "</td><td>" + timers[i].time.toLocaleString() + "</td><td>" + 'tobefilled' + "</td></tr>");
 }
 
 function selectTimer(event/*<-why is that not required? event is global or somehow inherited? how does that operate with multiple active events?*/) {
@@ -213,10 +222,12 @@ function selectTimer(event/*<-why is that not required? event is global or someh
 }
 
 function deleteTimer() {
-	var index = $(".timer_table_selected").index()
+	var index = $(".timer_table_selected").index();
 	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
-		timers.splice(index - 1, 1);//delete selected index
-		$('#table_body tr')[index].remove()//buildTimerDOM();
+		if (true) {//confirm("Do you want to delete the selected row?")) {
+			timers.splice(index - 1, 1);//delete selected index
+			$('#table_body tr')[index].remove();
+		}
 	}
 	else
 		alert("Nothing selected!");
@@ -333,17 +344,29 @@ function updateClock() {
 		context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
 		context.putImageData(digits[seconds % 10], digits[0].width * 5, 0);
 	}
-	//check all timers
-	for (var i = 0; i < timers.length; i++)
-		if (timers[i].type == 0)
-			if (Date.now() > timers[i].time.getTime() && Date.now() < +new Date(timers[i].time.getTime() + timeAlarmExpires * 1000).getTime()) {
+	//check all timers (should be separate function)
+	var playOnce = false;
+	for (var i = 0; i < timers.length; i++) {
+		if (!playOnce)
+			if (Date.now() > timers[i].time.getTime() && Date.now() < timers[i].time.getTime() + timeAlarmExpires * 1000) {
 				$("#audio")[0].play();
-				//break;
+				playOnce = true;
 			}
-		else {//(timers[i].type == 1)
-			continue;
-			$("#audio")[0].play();
-		}
+		//display on the table
+		var td = ($("#table_body > tr > td").parent()[i]).children;//so $%#*ing ugly
+		var remaining = timers[i].time.getTime() - Date.now();
+		if (remaining >= 0) {
+			remaining = Math.floor(remaining / 1000);
+			var seconds = remaining % 60;
+			remaining-= seconds;
+			var minutes = (remaining % 3600) / 60;
+			remaining-= minutes * 60;
+			var hours = (remaining % 86400) / 3600;
+			td[2].innerText = hours + ':' + minutes + ':' + seconds;
+			}
+		else
+			td[2].innerText = 'expired';
+	}
 }
 
 function strToHex(str) {
