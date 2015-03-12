@@ -13,6 +13,10 @@
 }
 
 #timer_table tr:nth-child(odd){
+	background-color:white;
+}
+
+#timer_table tr:nth-child(odd):hover{
 	background-color:red;
 }
 
@@ -20,10 +24,22 @@
 	background-color:yellow;
 }
 
+#timer_table tr.timer_table_selected:nth-child(odd):hover {
+	background-color:lime;
+}
+
 #timer_table tr:nth-child(even){
 	background-color:green;
 }
 
+#timer_table tr:nth-child(even):hover{
+	background-color:cyan;
+}
+
 #timer_table tr.timer_table_selected:nth-child(even) {
 	background-color:orange;
+}
+
+#timer_table tr.timer_table_selected:nth-child(even):hover {
+	background-color:black;
 }
