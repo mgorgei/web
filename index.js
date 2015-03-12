@@ -157,11 +157,9 @@ function validateInput() {
 	var HH = $("#timer_hours").val();
 	if (vi(HH, "#timer_hours")) {
 		var timer_type = $('input[name=radio]:checked', '#timer_entry').val();
-		$("#timer_hours").val(1 - timer_type);
-		HH = 1 - timer_type;
-		//how can I support leading zero while rejecting it as a valid time?
+		$("#timer_hours").val(0);
+		HH = 0;
 	}
-	HH--;//hours is zero-based internally, since min is 1 instead, it doesn't allow a leading 0 for hours as input like minutes / seconds do
 	var MM = $("#timer_minutes").val();
 	if (vi(MM, "#timer_minutes")) {
 		$("#timer_minutes").val(0);
@@ -173,7 +171,7 @@ function validateInput() {
 		SS = 0;
 	}
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
-		Number(HH.toString() + 1) + ':' + MM.toString() + ':' + SS.toString();
+		Number(HH.toString()) + ':' + MM.toString() + ':' + SS.toString();
 	var d = Date.parse(ps);
 	if(! isNaN(d)) {
 		console.log(new Date(d), ps);
