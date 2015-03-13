@@ -9,8 +9,8 @@ var timeAlarmExpires = 600;//in seconds
 time
   Date object when timer expires
 type
-  0 alarm
-  1 timer*/
+  0 Alarm
+  1 StopWatch*/
 function Timer(time, type) {
 	if (type == 0)
 		this.time = new Date(time);
@@ -25,7 +25,7 @@ function Timer(time, type) {
 }
 var timers = [];
 
-//create the digits 0-9 for later use by the clock update function
+//create the digits 0-9 for later use by the clock update function in the canvas element
 function drawDigits() {
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext('2d');
@@ -81,6 +81,7 @@ function drawDigits() {
 	base_image.src = 'digit.png'; //src needs to be specified after onload event	
 }
 
+//fill specific regions of an image with colors pulled from the canvas's CSS
 var colorEnum = {
 	outline:    -2, 
 	background: -1, 
@@ -149,6 +150,7 @@ function fillPixel(red, green, blue, j) {
 	return colorEnum.source;
 }
 
+//updates the canvas to display the current time every ~1000 ms
 function updateClock() {
 	function isLeapYear(year) {
 		if (year % 400 == 0)
@@ -204,7 +206,6 @@ function updateClock() {
 	var month = d.getMonth();
 	var year = d.getFullYear();
 	var monthText = getMonthText(month);
-	$("#demo").text([year, monthText, day, hours, minutes, seconds].join(':'));
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext('2d');
 	var fillColor = $("#canvas").css("background-color").slice(4, -1).split(',');
@@ -235,6 +236,8 @@ function updateClock() {
 /*supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is interpreted as a time for today by the parser
 rfc2822*/
 //having newly valid input or typing ':' on a valid input should auto tab over to the next point
+//force unexpected input to 0; confirm input is valid by successful creation of a Date object
+//it's possible since the input is (properly) constrained that the warning label is no longer going to fire
 function validateInput() {
 	function vi(i, jq){
 		return (isNaN(i) || i == "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
@@ -271,6 +274,7 @@ function validateInput() {
 	return false;
 }
 
+//get the timers from somewhere (should be server-side in the future)
 function getTimers() {
 	var today = new Date();
 	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ';
@@ -281,40 +285,46 @@ function getTimers() {
 	buildTimerDOM();
 }
 
+//build DOM from existing timers
 function buildTimerDOM() {
-	//$('#table_body > *').remove();
 	$("#table_body > tr").slice(1).remove();
-	//$('#table_body').append("<tr><th>" + "Type" + "</th><th>" + "Time" + "</th><th>" + "Remaining" + "</th></tr>");
 	for (var i = 0; i < timers.length; i++) {
 		addTimerDOM(i);
 	}
 }
 
+//add recent timer to the DOM
 function addTimerDOM(i) {
 	var type = ['Alarm', 'Stop Watch'];
 	$('#table_body').append("<tr><td>" + type[timers[i].type] + "</td><td>" + timers[i].time.toLocaleString() + "</td><td>" + 'tobefilled' + "</td></tr>");
 }
 
+//enables delete_timer button and add a class to visually indicate what timer is selected
 function selectTimer(event/*<-why is that not required? event is global or somehow inherited? how does that operate with multiple active events?*/) {
 	var target = $(event.target);
 	$("#table_body > *").removeClass("timer_table_selected");//transition out with animation?
+	$("#delete_timer").prop('disabled', true);
 	if (target.is("td")) {
 		$(target.parent()).addClass("timer_table_selected");
+		$("#delete_timer").prop('disabled', false);
 	}
 }
 
+//delete selected timers[index] and disable the delete_timer button because nothing is selected in the table
 function deleteTimer() {
 	var index = $(".timer_table_selected").index();
 	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
-		if (true) {//confirm("Do you want to delete the selected row?")) {
+		if (true) {//confirm("Do you want to delete the selected row?")) { use BS modal dialog?
 			timers.splice(index - 1, 1);//delete selected index
 			$('#table_body tr')[index].remove();
+			$("#delete_timer").prop('disabled', true);
 		}
 	}
 	else
 		alert("Nothing selected!");
 }
 
+//check if the timer has valid (Date)Time input, no duplicate, if so add it to the DOM
 function attemptNewTimer() {
 	var ps = validateInput();
 	if (ps) {
@@ -333,6 +343,7 @@ function attemptNewTimer() {
 	}
 }
 
+//play audio for (recently) expired timers; display time remaining on active timers
 function checkTimers() {
 	var playOnce = false;
 	for (var i = 0; i < timers.length; i++) {
