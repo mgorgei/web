@@ -2,14 +2,16 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Demo</title>
+		<title>New Tab()</title>
 		<link rel="stylesheet" href="index.css">
 	</head>
 	<body>
 		<p id="demo"></p>
+		
 		<canvas id="canvas">
 			<!--<img id="broken" src="broken_lcd.png"></img>-->
 		</canvas>
+		
 		<form id="timer_entry" action="" method="post" oninput="validateInput()">
 			<label for="timer_hours" id="timer_hours_label">HH:</label>
 				<input id="timer_hours" name="timer_hours" type="number" min=0 max=23 placeholder="HH (0-24)"/>
@@ -17,23 +19,28 @@
 				<input id="timer_minutes" name="timer_minutes" type="number" min=0 max=59 placeholder="MM (0-59)"/>
 			<label for="timer_seconds" id="timer_seconds_label">SS:</label>
 				<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="SS (0-59)"/>
-			<label id="timer_warning"></label><!--indicates status of validation of typed text-->
+			<label id="timer_warning">Expecting HH:MM:[:SS]</label>
+			
 			<input id="radio0" type="radio" name="radio" value=0 checked="checked"/>Alarm
 			<input id="radio1" type="radio" name="radio" value=1/>Stopwatch
-			<button type="button" onclick="attemptNewTimer()"><!--"submit"-->Add Timer</button>
+			<button type="button" onclick="attemptNewTimer()">Add Timer</button>
 		</form>
-		<table id="timer_table" <!--class="timer_table"-->
+		
+		<table id="timer_table">
 			<tbody id="table_body">
-				<!--alternating colors, dismiss-->
+				<tr><th>Type</th><th>Time</th><th>Remaining</th></tr>
+				<!--dynamically built-->
 			</tbody>
 		</table>
-		<button type="button" onclick="deleteTimer()"><!--"submit"-->Delete Timer</button>
+		
+		<button id="delete_timer" type="button" onclick="deleteTimer()">Delete Timer</button>
+		
 		<audio id="audio" src="ding.wav" preload control_s>
 			Your browser does not support the <code>audio</code> element.
 			<!--attribution: corsica_s / Tim Kahn on freesound.org via Creative Commons license 
 			https://www.freesound.org/people/Corsica_S/sounds/91926/-->
 		</audio>
-		<p id="image_data"></p>
+		
 		<script src="jquery-2.1.3.js"></script>
 		<script src="bs/js/bootstrap.js"></script>
 		<!--bs/css/bootstrap.css-->
@@ -52,7 +59,7 @@
 		$("#table_body").on("click", function( event ) {
 			selectTimer(event);
 		});
-		$("#timer_entry input[name=radio]").on("click", function () {
+		/*$("#timer_entry input[name=radio]").on("click", function () {
 			//$("timer_entry, input[name=timer_hours]").attr('min', 1 - this.value);
 			var x;
 		});
@@ -62,51 +69,8 @@
 			//is this blocking on the color dialog?
 			console.log('we\'ll see');
 			//$('#canvas_color').remove();
-		});
+		});*/
 	});
 		</script>
 	</body>
 </html>
-
-<!--
-$( document ).ready()
-A page can't be manipulated safely until the document is "ready." jQuery 
-detects this state of readiness for you. Code included inside 
-$( document ).ready() will only run once the page Document Object Model (DOM) 
-is ready for JavaScript code to execute. Code included inside 
-$( window ).load(function() { ... }) will run once the entire page (images or 
-iframes), not just the DOM, is ready.
-
-However, both objects contain the same DOM element. The .get() method is useful
- for testing if two jQuery objects have the same DOM element.
-
-As a getter, the .css() method is valuable. However, it should generally be 
-avoided as a setter in production-ready code, because it's generally best to 
-keep presentational information out of JavaScript code. Instead, write CSS
- rules for classes that describe the various visual states, and then change 
- the class on the element.
- 
- The event bubbling that occurs affords us the ability to add cells via Ajax 
- for example, without having to bind events directly to those cells since the
- parent table is listening for clicks and is therefore notified of clicks on 
- its children. If we weren't using delegation, we'd have to constantly bind 
- events for every cell that's added which is not only a performance issue, but
- could also become a maintenance nightmare.
- 
- lookup syntax for division between jquery / dom / javascript object
- 
- 
-It is often the case that an anchor tag is used with the onclick event. In 
-order to prevent the page from refreshing, href is often set to either "#" or
- "javascript:void(0)". Both of these values can lead to some unexpected errors
- when copying links and opening links in a new tab and/or window. Be aware of 
- this for usability reasons, and when users do use anchor tags and you prevent
- default behavior.
- 
- If a string is passed as the parameter to $(), jQuery examines the string to 
- see if it looks like HTML (i.e., it starts with <tag ... >). If not, the 
- string is interpreted as a selector expression, as explained above. But if the
- string appears to be an HTML snippet, jQuery attempts to create new DOM 
- elements as described by the HTML. Then a jQuery object is created and 
- returned that refers to these elements. You can perform any of the usual 
- jQuery methods on this object:-->
