@@ -1,45 +1,53 @@
 #canvas {
+	display: table;
+	margin: 0 auto;
+	
 	color: #403D18;
 	outline-color: #E9E8DA;
 	border-bottom-color: #000000;
 	background-color: #E2DEB1;
 }
+
+#timer_entry {
+	display: table;
+	margin: 0 auto;
+}
+
 #timer_warning {
+	display: none;
 	background-color: red;
 }
 
+#timer_table {
+	margin: 0 auto;
+	width: 904px;
+}
+
 #timer_table th{
-	background-color:blue;
+	color: white;
+	background-color: blue;
 }
 
 #timer_table tr:nth-child(odd){
-	background-color:white;
-}
-
-#timer_table tr:nth-child(odd):hover{
-	background-color:red;
+	background-color: white;
 }
 
 #timer_table tr.timer_table_selected:nth-child(odd) {
-	background-color:yellow;
-}
-
-#timer_table tr.timer_table_selected:nth-child(odd):hover {
-	background-color:lime;
+	background-color: orange;
 }
 
 #timer_table tr:nth-child(even){
-	background-color:green;
-}
-
-#timer_table tr:nth-child(even):hover{
-	background-color:cyan;
+	background-color: #f9f9f9;
 }
 
 #timer_table tr.timer_table_selected:nth-child(even) {
-	background-color:orange;
+	background-color: orange;
 }
 
-#timer_table tr.timer_table_selected:nth-child(even):hover {
-	background-color:black;
+#timer_table tr:hover {
+	background-color: #19B5FE;
+}
+
+#timer_table tr.timer_table_selected:hover {
+	background-color: orange;
 }
