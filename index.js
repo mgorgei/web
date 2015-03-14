@@ -78,7 +78,7 @@ function drawDigits() {
 		$("#canvas").triggerHandler("onloadeddata");
 	}
 	//base_image.crossOrigin = "use-credentials";//'anonymous';
-	base_image.src = 'digit.png'; //src needs to be specified after onload event	
+	base_image.src = 'images/digit.png'; //src needs to be specified after onload event	
 }
 
 //fill specific regions of an image with colors pulled from the canvas's CSS
@@ -260,7 +260,7 @@ function validateInput() {
 		SS = 0;
 	}
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
-		Number(HH.toString()) + ':' + MM.toString() + ':' + SS.toString();
+		('0' + HH.toString()).substr(-2) + ':' + ('0' + MM.toString()).substr(-2) + ':' + ('0' + SS.toString()).substr(-2);
 	var d = Date.parse(ps);
 	if(! isNaN(d)) {
 		console.log(new Date(d), ps);
@@ -270,6 +270,7 @@ function validateInput() {
 	else {
 		console.log('invalid', ps);
 		$("#timer_warning").show();
+		alert('still need warning label');
 	}
 	return false;
 }
@@ -296,15 +297,16 @@ function buildTimerDOM() {
 //add recent timer to the DOM
 function addTimerDOM(i) {
 	var type = ['Alarm', 'Stop Watch'];
-	$('#table_body').append("<tr><td>" + type[timers[i].type] + "</td><td>" + timers[i].time.toLocaleString() + "</td><td>" + 'tobefilled' + "</td></tr>");
+	$('#table_body').append("<tr><td>" + type[timers[i].type] + "</td><td>" + timers[i].time.toLocaleString() + "</td><td>" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
 }
 
 //enables delete_timer button and add a class to visually indicate what timer is selected
 function selectTimer(event/*<-why is that not required? event is global or somehow inherited? how does that operate with multiple active events?*/) {
 	var target = $(event.target);
+	var hasClass = target.parent().hasClass("timer_table_selected");//assist in deselecting the table
 	$("#table_body > *").removeClass("timer_table_selected");//transition out with animation?
 	$("#delete_timer").prop('disabled', true);
-	if (target.is("td")) {
+	if (target.is("td") && !hasClass) {
 		$(target.parent()).addClass("timer_table_selected");
 		$("#delete_timer").prop('disabled', false);
 	}
@@ -315,7 +317,7 @@ function deleteTimer() {
 	var index = $(".timer_table_selected").index();
 	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
 		if (true) {//confirm("Do you want to delete the selected row?")) { use BS modal dialog?
-			timers.splice(index - 1, 1);//delete selected index
+			timers.splice(index, 1);//delete selected index
 			$('#table_body tr')[index].remove();
 			$("#delete_timer").prop('disabled', true);
 		}
@@ -352,20 +354,24 @@ function checkTimers() {
 				$("#audio")[0].play();
 				playOnce = true;
 			}
-		var td = $("#table_body > tr")[i + 1].children;
-		var remaining = timers[i].time.getTime() - Date.now();
-		if (remaining >= 0) {
-			remaining = Math.floor(remaining / 1000);
-			var seconds = remaining % 60;
-			remaining-= seconds;
-			var minutes = (remaining % 3600) / 60;
-			remaining-= minutes * 60;
-			var hours = (remaining % 86400) / 3600;
-			td[2].innerText = hours + ':' + minutes + ':' + seconds;
-			}
-		else
-			td[2].innerText = 'expired';
+		var td = $("#table_body > tr")[i].children;
+		td[2].innerText = timeRemaining(timers[i].time.getTime());
 	}
+}
+
+function timeRemaining(time) {
+	var remaining = time - Date.now();
+	if (remaining >= 0) {
+		remaining = Math.floor(remaining / 1000);
+		var seconds = remaining % 60;
+		remaining-= seconds;
+		var minutes = (remaining % 3600) / 60;
+		remaining-= minutes * 60;
+		var hours = (remaining % 86400) / 3600;
+		return ('0' + hours).substr(-2) + ':' + ('0' + minutes).substr(-2) + ':' + ('0' + seconds).substr(-2);
+	}
+	else
+		return 'expired';
 }
 
 function strToHex(str) {
