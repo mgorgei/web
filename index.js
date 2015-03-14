@@ -4,6 +4,13 @@ var twenty_four_hour_clock = false;
 var clockIntervalID;
 var lengthOfSemiColon = 32;//cannot be measured
 var timeAlarmExpires = 600;//in seconds
+var colorEnum = {
+	outline:    -2, 
+	background: -1, 
+	source:      0, 
+	digiton:     1, 
+	digitoff:    2};
+Object.freeze(colorEnum);//closest implementation to enum available
 
 /*Timer "class"
 time
@@ -27,6 +34,12 @@ var timers = [];
 
 //create the digits 0-9 for later use by the clock update function in the canvas element
 function drawDigits() {
+	function fill(i, j, CSScolor){//fill a pixel with a specific CSS color 
+		digits[j].data[i] = CSScolor[0];
+		digits[j].data[i+1] = CSScolor[1];
+		digits[j].data[i+2] = CSScolor[2];
+		digits[j].data[i+3] = 255;
+	};
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext('2d');
 	var base_image = new Image();
@@ -42,37 +55,17 @@ function drawDigits() {
 		for (var j = 0; j < 11; j++) {
 			digits[j] = context.createImageData(base_image.width, base_image.height);
 			for (var i = 0; i < imageData.data.length; i+=4) {
-				var result = fillPixel(imageData.data[i], imageData.data[i + 1], imageData.data[i + 2], j);
-				if (result == 1) {
-					digits[j].data[i] = colorDigit[0];
-					digits[j].data[i+1] = colorDigit[1];
-					digits[j].data[i+2] = colorDigit[2];
-					digits[j].data[i+3] = 255;
-				}
-				else if (result == 2) {
-					digits[j].data[i] = colorDigitOff[0];
-					digits[j].data[i+1] = colorDigitOff[1];
-					digits[j].data[i+2] = colorDigitOff[2];
-					digits[j].data[i+3] = 255;
-				}
-				else if (result == -1) {
-					digits[j].data[i] = colorBackground[0];
-					digits[j].data[i+1] = colorBackground[1];
-					digits[j].data[i+2] = colorBackground[2];
-					digits[j].data[i+3] = 255;
-				}
-				else if (result == -2) {
-					digits[j].data[i] = colorOutline[0];
-					digits[j].data[i+1] = colorOutline[1];
-					digits[j].data[i+2] = colorOutline[2];
-					digits[j].data[i+3] = 255;
-				}
-				else {
-					digits[j].data[i] = imageData.data[i];
-					digits[j].data[i+1] = imageData.data[i+1];
-					digits[j].data[i+2] = imageData.data[i+2];
-					digits[j].data[i+3] = imageData.data[i+3];
-				}
+				var result = identifyPixel(imageData.data[i], imageData.data[i + 1], imageData.data[i + 2], j);
+				if (result == colorEnum.digiton)
+					fill(i, j, colorDigit);
+				else if (result == colorEnum.digitoff)
+					fill(i, j, colorDigitOff);
+				else if (result == colorEnum.background)
+					fill(i, j, colorBackground);
+				else if (result == colorEnum.outline)
+					fill(i, j, colorOutline);
+				else //  result == colorEnum.source
+					fill(i, j, imageData.data.splice(i, i + 3));//source is a fallback now since the entire image is tagged
 			}
 		}
 		$("#canvas").triggerHandler("onloadeddata");
@@ -81,32 +74,37 @@ function drawDigits() {
 	base_image.src = 'images/digit.png'; //src needs to be specified after onload event	
 }
 
-//fill specific regions of an image with colors pulled from the canvas's CSS
-var colorEnum = {
-	outline:    -2, 
-	background: -1, 
-	source:      0, 
-	digiton:     1, 
-	digitoff:    2};
-Object.freeze(colorEnum);//closest implementation to enum available
-function fillPixel(red, green, blue, j) {
+/*identify specific regions of an image to be colored
+
+  Image regions are labeled between 1-8 by their red and green components of a 
+  given pixel's rgb color.  The regions 1-6 are organized clockwise, the 
+  central bar is 7, the semi colon is 8 and does not follow color coding since
+  it is always colored.  If the blue component of a pixel matches the region 
+  designation (1-7) then it is part of that region-otherwise it belongs to that
+  region's outline.  Anything that is not a region-outline or region is part of
+  the background.
+  
+  Digits are composed of a number of these regions.  For instance, the digit
+  '0' is requires the regions and matching region-outlines: 1, 2, 3, 4, 5, 6.
+*/
+function identifyPixel(red, green, blue, j) {
 	function fp(matching_color, valid_digits, red, green, blue, index) {
-		if (red == matching_color && green == matching_color) {
+		if (red == matching_color && green == matching_color) {//in a region or region-outline
 			var result = false;
-			for (var i = 0; i < valid_digits.length; i++)
+			for (var i = 0; i < valid_digits.length; i++)//go through all digits that needs this region
 				if (index == valid_digits[i]) {
 					result = true;
 					break;
 				}
-			if (result) {
-				if (blue == matching_color)
+			if (result) {//the current digit needs this region
+				if (blue == matching_color)//is this a region (true) or region-outline
 					return colorEnum.digiton;
 				return colorEnum.outline;
 			}
 			else {
-				if (blue == matching_color)
+				if (blue == matching_color)//is this a region (true) or region-outline
 					return colorEnum.digitoff;
-				return colorEnum.background;
+				return colorEnum.background;//the digitoff outline does not have a unique color
 			}
 		}
 		return 127; //fail code
@@ -141,7 +139,7 @@ function fillPixel(red, green, blue, j) {
 		return x;
 	//fill 8 (semi-colon)
 	if (red == 8 && green == 8 && blue == 8)
-		return 1;
+		return colorEnum.digiton;
 	if (red == 0 && green == 255 && blue == 255)
 		return colorEnum.outline;
 	//background
@@ -159,7 +157,6 @@ function updateClock() {
 			return false;
 		return year % 4 == 0;
 	}
-
 	function getMonthText(month) {
 		if (month == 0)
 			return 'January';
@@ -230,7 +227,7 @@ function updateClock() {
 		context.fillRect(digits[0].width * 3 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
 		context.putImageData(digits[minutes % 10], digits[0].width * 3, 0);
 	}
-	if (true) { //remove seconds conditionally
+	if (true) { //remove seconds conditionally<-- this condition is probably going to be screen width if canvas won't scale down nicely
 		context.putImageData(digits[Math.floor(seconds / 10)], digits[0].width * 4, 0);
 		context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
 		context.putImageData(digits[seconds % 10], digits[0].width * 5, 0);
