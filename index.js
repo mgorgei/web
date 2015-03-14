@@ -214,10 +214,15 @@ function updateClock() {
 		if (hours > 9) {
 			context.putImageData(digits[Math.floor(hours / 10)], 0, 0);
 			context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
-			}
+		}
 		else {
-			context.fillRect(0, 0, digits[0].width, digits[0].height);
+			if (false)
+				context.fillRect(0, 0, digits[0].width, digits[0].height);
+			else {//testing stylistic change
+			context.putImageData(digits[10], 0, 0);
+			context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
 			}
+		}
 		context.putImageData(digits[hours % 10], digits[0].width * 1, 0);
 	}
 	if (true) {//remove minutes conditionally
@@ -242,23 +247,18 @@ function validateInput() {
 	function vi(i, jq){
 		return (isNaN(i) || i == "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
 	}
+	function getValue(jq){
+		var TTx = $(jq).val();
+		if (vi(TTx, jq)) {
+			$(jq).val(0);
+			return 0;
+		}
+		return TTx;
+	}
+	var HH = getValue("#timer_hours");
+	var MM = getValue("#timer_minutes");
+	var SS = getValue("#timer_seconds");
 	var today = new Date();
-	var HH = $("#timer_hours").val();
-	if (vi(HH, "#timer_hours")) {
-		var timer_type = $('input[name=radio]:checked', '#timer_entry').val();
-		$("#timer_hours").val(0);
-		HH = 0;
-	}
-	var MM = $("#timer_minutes").val();
-	if (vi(MM, "#timer_minutes")) {
-		$("#timer_minutes").val(0);
-		MM = 0;
-	}
-	var SS = $("#timer_seconds").val();
-	if (vi(SS, "#timer_seconds")) {
-		$("#timer_seconds").val(0);
-		SS = 0;
-	}
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
 		('0' + HH.toString()).substr(-2) + ':' + ('0' + MM.toString()).substr(-2) + ':' + ('0' + SS.toString()).substr(-2);
 	var d = Date.parse(ps);
@@ -359,6 +359,7 @@ function checkTimers() {
 	}
 }
 
+//calculate time remaining on a timer from now
 function timeRemaining(time) {
 	var remaining = time - Date.now();
 	if (remaining >= 0) {
