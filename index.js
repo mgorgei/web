@@ -244,16 +244,16 @@ rfc2822*/
 //force unexpected input to 0; confirm input is valid by successful creation of a Date object
 //it's possible since the input is (properly) constrained that the warning label is no longer going to fire
 function validateInput() {
-	function vi(i, jq){
+	function vi(i, jq){//make sure input is set to a number and is within the valid range
 		return (isNaN(i) || i == "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
 	}
-	function getValue(jq){
-		var TTx = $(jq).val();
-		if (vi(TTx, jq)) {
+	function getValue(jq){//get the value; if is not valid, set the form to 0; return the value on the form
+		var value = $(jq).val();
+		if (vi(value, jq)) {
 			$(jq).val(0);
 			return 0;
 		}
-		return TTx;
+		return value;
 	}
 	var HH = getValue("#timer_hours");
 	var MM = getValue("#timer_minutes");
