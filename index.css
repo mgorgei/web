@@ -1,11 +1,19 @@
+body {
+	padding-bottom: 50px;/*any scrolling would be hidden by the navbar without this*/
+}
 #canvas {
 	display: table;
 	margin: 0 auto;
-	
+
 	color: #403D18;
 	outline-color: #E9E8DA;
 	border-bottom-color: #000000;
 	background-color: #E2DEB1;
+}
+
+.canvas {
+	background-color: #E2DEB1;
+	padding: 3px 0;
 }
 
 #timer_entry {
@@ -18,30 +26,30 @@
 	background-color: red;
 }
 
-#timer_table {
+/*#timer_table {
 	margin: 0 auto;
 	width: 904px;
-}
+}*/
 
 #timer_table th{
-	color: white;
-	background-color: blue;
+	color: #DCC6E0;/*#BE90D4;*/
+	background-color: #674172;/*#663399;*/
 }
 
 #timer_table tr:nth-child(odd){
-	background-color: white;
+	background-color: #F2F1EF;
 }
 
 #timer_table tr.timer_table_selected:nth-child(odd) {
-	background-color: orange;
+	background-color: #F89406;
 }
 
 #timer_table tr:nth-child(even){
-	background-color: #f9f9f9;
+	background-color: #DADADA;
 }
 
 #timer_table tr.timer_table_selected:nth-child(even) {
-	background-color: orange;
+	background-color: #F89406;
 }
 
 #timer_table tr:hover {
@@ -49,5 +57,10 @@
 }
 
 #timer_table tr.timer_table_selected:hover {
-	background-color: orange;
+	background-color: #F89406;
 }
+
+ul li:hover {
+	backgrond-color: #00FF00;
+}
+
