@@ -2,8 +2,10 @@
 var digits = [];
 var twenty_four_hour_clock = false;
 var clockIntervalID;
-var lengthOfSemiColon = 32;//cannot be measured
+var lengthOfSemiColon = 32;//cannot be measured in the image, so needs to be specified
 var timeAlarmExpires = 600;//in seconds
+var alarmDelay = 10;//time in seconds from start of alarm sound
+var alarmLastPlayed = 0;//ms since 1/1/1970
 var colorEnum = {
 	outline:    -2, 
 	background: -1, 
@@ -24,7 +26,6 @@ function Timer(time, type) {
 	else {//the time given is milliseconds relative to today, so strip today midnight out to get the time from now that the timer will expire
 		var today = new Date();
 		today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-		gg = time;
 		this.time = new Date(Date.now() - today.getTime() + new Date(time).getTime());
 		console.log(today.getTime(), Date.now(), time, Date.now() - today.getTime());
 	}
@@ -239,7 +240,6 @@ function updateClock() {
 rfc2822*/
 //having newly valid input or typing ':' on a valid input should auto tab over to the next point
 //force unexpected input to 0; confirm input is valid by successful creation of a Date object
-//it's possible since the input is (properly) constrained that the warning label is no longer going to fire
 function validateInput() {
 	function vi(i, jq){//make sure input is set to a number and is within the valid range
 		return (isNaN(i) || i == "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
@@ -279,7 +279,7 @@ function getTimers() {
 	timers = [];
 	timers[0] = new Timer(Date.parse(today + '11:05'), 0);
 	timers[1] = new Timer(Date.parse(today + '17:10'), 0);
-	timers[2] = new Timer(Date.parse(today + '23:20'), 0);
+	timers[2] = new Timer(Date.parse(today + '19:25'), 0);
 	buildTimerDOM();
 }
 
@@ -344,12 +344,12 @@ function attemptNewTimer() {
 
 //play audio for (recently) expired timers; display time remaining on active timers
 function checkTimers() {
-	var playOnce = false;
 	for (var i = 0; i < timers.length; i++) {
-		if (!playOnce)
-			if (Date.now() > timers[i].time.getTime() && Date.now() < timers[i].time.getTime() + timeAlarmExpires * 1000) {
+		if (Date.now() > timers[i].time.getTime() && Date.now() < timers[i].time.getTime() + timeAlarmExpires * 1000)
+			if (Date.now() > alarmLastPlayed + alarmDelay * 1000) {
+				//show which tr element is playing this sound
+				alarmLastPlayed = Date.now();
 				$("#audio")[0].play();
-				playOnce = true;
 			}
 		var td = $("#table_body > tr")[i].children;
 		td[2].innerText = timeRemaining(timers[i].time.getTime());
