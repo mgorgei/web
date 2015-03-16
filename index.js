@@ -277,9 +277,31 @@ function getTimers() {
 	var today = new Date();
 	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ';
 	timers = [];
-	timers[0] = new Timer(Date.parse(today + '11:05'), 0);
-	timers[1] = new Timer(Date.parse(today + '17:10'), 0);
-	timers[2] = new Timer(Date.parse(today + '19:25'), 0);
+	if (false) {//get timers locally for testing
+		timers[0] = new Timer(Date.parse(today + '11:05'), 0);
+		timers[1] = new Timer(Date.parse(today + '17:10'), 0);
+		timers[2] = new Timer(Date.parse(today + '19:25'), 0);
+	}
+	else {//get timers from server
+		$.ajax({
+			url : "http://mgorgei.x10host.com/ajax.php",
+			data : "timers",
+			type : "GET",
+			success: function(stuff) {
+				console.log("success", stuff);
+			},
+			error: function() {
+				console.log("error");
+			},
+			complete: function() {
+				console.log("complete");
+			}
+		});
+		/*
+1	0	11:05:00
+2	0	17:10:00
+3	0	19:25:00*/
+	}
 	buildTimerDOM();
 }
 
@@ -313,11 +335,18 @@ function selectTimer(event/*<-why is that not required? event is global or someh
 function deleteTimer() {
 	var index = $(".timer_table_selected").index();
 	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
-		if (true) {//confirm("Do you want to delete the selected row?")) { use BS modal dialog?
-			timers.splice(index, 1);//delete selected index
-			$('#table_body tr')[index].remove();
-			$("#delete_timer").prop('disabled', true);
-		}
+		console.log(index);
+		$(".timer_table_selected").fadeOut(1000, function() {
+			//$("").prop("height");
+			/*$("tr").animate(//move up everything beneath this index by the height of the tr
+			{
+				top: "-=38px"
+			}, 10000, function () {*/
+				timers.splice(index, 1);//delete selected index
+				$('#table_body tr')[index].remove();
+				$("#delete_timer").prop('disabled', true);
+			});
+		//});
 	}
 	else
 		alert("Nothing selected!");
