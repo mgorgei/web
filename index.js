@@ -20,7 +20,7 @@ time
 type
   0 Alarm
   1 StopWatch*/
-function Timer(time, type) {
+function Timer(time, type, id) {
 	if (type == 0)
 		this.time = new Date(time);
 	else {//the time given is milliseconds relative to today, so strip today midnight out to get the time from now that the timer will expire
@@ -30,6 +30,7 @@ function Timer(time, type) {
 		console.log(today.getTime(), Date.now(), time, Date.now() - today.getTime());
 	}
 	this.type = type;
+	this.id = id;
 }
 var timers = [];
 
@@ -272,42 +273,57 @@ function validateInput() {
 	return false;
 }
 
-//get the timers from somewhere (should be server-side in the future)
+//get the timers from either the server or locally on failure
 function getTimers() {
+	function fallback(today)//get timers locally for testing or fallback
+	{
+		timers[0] = new Timer(Date.parse(today + '11:05'), 0, -1);
+		timers[1] = new Timer(Date.parse(today + '17:10'), 0, -1);
+		timers[2] = new Timer(Date.parse(today + '19:25'), 0, -1);
+	}
 	var today = new Date();
 	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ';
 	timers = [];
-	if (false) {//get timers locally for testing
-		timers[0] = new Timer(Date.parse(today + '11:05'), 0);
-		timers[1] = new Timer(Date.parse(today + '17:10'), 0);
-		timers[2] = new Timer(Date.parse(today + '19:25'), 0);
+	if (false) {
+		fallback(today);
+		buildTimerDOM();
 	}
-	else {//get timers from server
+	else {//get timers from server//these values aren't coming back as expected for stopwatches
 		$.ajax({
-			url : "http://mgorgei.x10host.com/ajax.php",
+			url : "http://mgorgei.x10host.com/test/ajax.php",//these are linked absolute in hopes of using cross site origin (local testing without having local virtual server)
 			data : "timers",
 			type : "GET",
-			success: function(stuff) {
-				console.log("success", stuff);
+			success: function(data) {
+				if (data) {
+					console.log("success", data);//pretty lame that this is calling success on empty data all the time...
+					var i = 0;
+					data.toString().split('\n').forEach(function (line) {
+						if (line !== "") {
+							console.log(line);
+							line = line.split('\t');
+							console.log(line);
+							timers[i] = new Timer(Date.parse(today + line[2]), line[1], line[0]);
+							console.log(timers);
+							i++;
+						}
+					});
+				}
 			},
 			error: function() {
 				console.log("error");
+				fallback(today);
 			},
 			complete: function() {
+				buildTimerDOM();
 				console.log("complete");
 			}
 		});
-		/*
-1	0	11:05:00
-2	0	17:10:00
-3	0	19:25:00*/
 	}
-	buildTimerDOM();
 }
 
 //build DOM from existing timers
 function buildTimerDOM() {
-	$("#table_body > tr").slice(1).remove();
+	$("#table_body > tr").slice(0).remove();//possibly dangerous value!!
 	for (var i = 0; i < timers.length; i++) {
 		addTimerDOM(i);
 	}
@@ -336,12 +352,30 @@ function deleteTimer() {
 	var index = $(".timer_table_selected").index();
 	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
 		console.log(index);
+		if (timers[index].id >= 0) {//don't delete if the id is negative (indicates a local timer not synced with server)
+			ajaxData = 'D' + timers[index].id;
+			$.ajax({
+				url : "http://mgorgei.x10host.com/test/ajax.php",
+				data : ajaxData,
+				type : "GET",//server? does not respond to any non-GET data without a hard fail
+				success: function(data) {
+					console.log("success", data);
+				},
+				error: function() {
+					console.log("error");
+				},
+				complete: function() {
+					console.log("complete");
+				}
+			});
+		}
 		$(".timer_table_selected").fadeOut(1000, function() {
 			//$("").prop("height");
 			/*$("tr").animate(//move up everything beneath this index by the height of the tr
 			{
 				top: "-=38px"
 			}, 10000, function () {*/
+			
 				timers.splice(index, 1);//delete selected index
 				$('#table_body tr')[index].remove();
 				$("#delete_timer").prop('disabled', true);
@@ -356,18 +390,36 @@ function deleteTimer() {
 function attemptNewTimer() {
 	var ps = validateInput();
 	if (ps) {
-		timers[timers.length] = new Timer(ps, $('input[name=radio]:checked', '#timer_entry').val());
+		timers[timers.length] = new Timer(ps, $('input[name=radio]:checked', '#timer_entry').val(), -1);
 		console.log(ps, $('input[name=radio]:checked', '#timer_entry').val());
 		var dupe = false;
-		//check for existing duplicates, delete them if they exist
+		//check for existing duplicates in UI, delete them if they exist
 		for (var i = 0; i < timers.length - 1; i++)
 			if (timers[i].time.getTime() == timers[timers.length - 1].time.getTime() && timers[i].type == timers[timers.length - 1].type) {
 				timers.splice(timers.length - 1, 1);
 				dupe = true;
 				break;//should only have one dupe at least locally; also not designed to properly navigate the loop using this structure after a deletion
 			}
-		if (!dupe)
+		if (!dupe) {
+			var time = timers[i].time.toTimeString()
+			ajaxData = 'P' + time.substr(0, time.indexOf(' ')) + ',' + timers[i].type;
+			$.ajax({
+				url : "http://mgorgei.x10host.com/test/ajax.php",
+				data : ajaxData,
+				type : "GET",//cannot use POST on server...
+				success: function(data) {
+					console.log("success", data);
+					timers[i].id = data;
+				},
+				error: function() {
+					console.log("error");
+				},
+				complete: function() {
+					console.log("complete");
+				}
+			});
 			addTimerDOM(i);
+		}
 	}
 }
 
