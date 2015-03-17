@@ -29,7 +29,10 @@
 
 				<button type="button" onclick="attemptNewTimer()" class="btn btn-default">
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
-				</button>		
+				</button>
+				<button type="button" onclick="getTimers()" class="btn btn-default">
+					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
+				</button>
 				<button type="button" id="delete_timer" onclick="deleteTimer()" class="btn btn-default" disabled="true">
 					<span class="glyphicon glyphicon-trash" aria-hidden="true">Delete</span>
 				</button>
@@ -49,7 +52,7 @@
 			</tbody>
 		</table>
 		
-		<audio id="audio" src="ding.wav">
+		<audio id="audio" src="ding.mp3" type="audio/mpeg"><!--not supported in firefox-->
 			Your browser does not support the <code>audio</code> element.
 			<!--attribution: corsica_s / Tim Kahn on freesound.org via Creative Commons license 
 			https://www.freesound.org/people/Corsica_S/sounds/91926/-->
@@ -79,6 +82,7 @@
 
 <!--********************************************************************************************-->
 
+		<!--<script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js" slave="http://mgorgei.x10host.com/proxy.html"></script>-->
 		<script src="jquery-2.1.3.js"></script>
 		<script src="bs/js/bootstrap.js"></script>
 		<script src="index.js"></script>
@@ -87,9 +91,9 @@
 	$( document ).ready(function() {
 		drawDigits();
 		$("#canvas").on("onloadeddata", function() {
+			getTimers();
 			updateClock();
 			clockIntervalID = setInterval(function () {updateClock()}, 1000);
-			getTimers();
 		});
 		$("#table_body").on("click", function( event ) {
 			selectTimer(event);
