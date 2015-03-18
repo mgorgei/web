@@ -6,6 +6,7 @@ var lengthOfSemiColon = 32;//cannot be measured in the image, so needs to be spe
 var timeAlarmExpires = 600;//in seconds
 var alarmDelay = 10;//time in seconds from start of alarm sound
 var alarmLastPlayed = 0;//ms since 1/1/1970
+var testLocal = location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
 var colorEnum = {
 	outline:    -2, 
 	background: -1, 
@@ -19,17 +20,22 @@ time
   Date object when timer expires
 type
   0 Alarm
-  1 StopWatch*/
+  1 StopWatch
+  2 Server-Side StopWatch that needs to mutate back to type=1 when local*/
 function Timer(time, type, id) {
-	if (type == 0)
-		this.time = new Date(time);
-	else {//the time given is milliseconds relative to today, so strip today midnight out to get the time from now that the timer will expire
+	if (type == 1) {//the time given is milliseconds relative to today, so strip today midnight out to get the time from now that the timer will expire
 		var today = new Date();
 		today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
 		this.time = new Date(Date.now() - today.getTime() + new Date(time).getTime());
-		console.log(today.getTime(), Date.now(), time, Date.now() - today.getTime());
 	}
-	this.type = type;
+	else
+		this.time = new Date(time);
+	//nonsense workaround that avoids nonsense computation
+	//instead of working around it, the type on the server could also be 0, but could be unsettling in UI for type to change
+	if (type == 2)
+		this.type = 1;
+	else
+		this.type = type;
 	this.id = id;
 }
 var timers = [];
@@ -284,13 +290,13 @@ function getTimers() {
 	var today = new Date();
 	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ';
 	timers = [];
-	if (false) {
+	if (testLocal) {
 		fallback(today);
 		buildTimerDOM();
 	}
 	else {//get timers from server//these values aren't coming back as expected for stopwatches
 		$.ajax({
-			url : "http://mgorgei.x10host.com/test/ajax.php",//these are linked absolute in hopes of using cross site origin (local testing without having local virtual server)
+			url : "/ajax.php",//these are linked absolute in hopes of using cross site origin (local testing without having local virtual server)
 			data : "timers",
 			type : "GET",
 			success: function(data) {
@@ -302,7 +308,10 @@ function getTimers() {
 							console.log(line);
 							line = line.split('\t');
 							console.log(line);
-							timers[i] = new Timer(Date.parse(today + line[2]), line[1], line[0]);
+							if (line[1] == '0')
+								timers[i] = new Timer(Date.parse(today + line[2]), line[1], line[0]);
+							else
+								timers[i] = new Timer(Date.parse(today + line[2]), 2, line[0]);
 							console.log(timers);
 							i++;
 						}
@@ -353,21 +362,23 @@ function deleteTimer() {
 	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
 		console.log(index);
 		if (timers[index].id >= 0) {//don't delete if the id is negative (indicates a local timer not synced with server)
-			ajaxData = 'D' + timers[index].id;
-			$.ajax({
-				url : "http://mgorgei.x10host.com/test/ajax.php",
-				data : ajaxData,
-				type : "GET",//server? does not respond to any non-GET data without a hard fail
-				success: function(data) {
-					console.log("success", data);
-				},
-				error: function() {
-					console.log("error");
-				},
-				complete: function() {
-					console.log("complete");
-				}
-			});
+			if (!testLocal) {
+				ajaxData = 'D' + timers[index].id;
+				$.ajax({
+					url : "/ajax.php",
+					data : ajaxData,
+					type : "GET",//server? does not respond to any non-GET data without a hard fail
+					success: function(data) {
+						console.log("success", data);
+					},
+					error: function() {
+						console.log("error");
+					},
+					complete: function() {
+						console.log("complete");
+					}
+				});
+			}
 		}
 		$(".timer_table_selected").fadeOut(1000, function() {
 			//$("").prop("height");
@@ -401,23 +412,25 @@ function attemptNewTimer() {
 				break;//should only have one dupe at least locally; also not designed to properly navigate the loop using this structure after a deletion
 			}
 		if (!dupe) {
-			var time = timers[i].time.toTimeString()
-			ajaxData = 'P' + time.substr(0, time.indexOf(' ')) + ',' + timers[i].type;
-			$.ajax({
-				url : "http://mgorgei.x10host.com/test/ajax.php",
-				data : ajaxData,
-				type : "GET",//cannot use POST on server...
-				success: function(data) {
-					console.log("success", data);
-					timers[i].id = data;
-				},
-				error: function() {
-					console.log("error");
-				},
-				complete: function() {
-					console.log("complete");
-				}
-			});
+			if (!testLocal) {
+				var t = timers[i].time.toTimeString()
+				ajaxData = 'P' + t.substr(0, t.indexOf(' ')) + ',' + timers[i].type;
+				$.ajax({
+					url : "/ajax.php",
+					data : ajaxData,
+					type : "GET",//cannot use POST on server...
+					success: function(data) {
+						console.log("success", data);
+						timers[i].id = data;
+					},
+					error: function() {
+						console.log("error");
+					},
+					complete: function() {
+						console.log("complete");
+					}
+				});
+			}
 			addTimerDOM(i);
 		}
 	}
