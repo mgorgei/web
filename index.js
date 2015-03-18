@@ -1,4 +1,5 @@
 //var newObject = jQuery.extend(true, {}, oldObject);//jQuery deep copy
+var gg;//global variable for inspecting objects quickly
 var digits = [];
 var twenty_four_hour_clock = false;
 var clockIntervalID;
@@ -7,6 +8,7 @@ var timeAlarmExpires = 600;//in seconds
 var alarmDelay = 10;//time in seconds from start of alarm sound
 var alarmLastPlayed = 0;//ms since 1/1/1970
 var testLocal = location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
+var shiftKey = false;//may need to be global to persist through two events
 var colorEnum = {
 	outline:    -2, 
 	background: -1, 
@@ -31,7 +33,7 @@ function Timer(time, type, id) {
 	else
 		this.time = new Date(time);
 	//nonsense workaround that avoids nonsense computation
-	//instead of working around it, the type on the server could also be 0, but could be unsettling in UI for type to change
+	//instead of working around it, the type on the server could also be 0, but could be unsettling in UI for type to change, or UI doesn't need to display original timer entry type
 	if (type == 2)
 		this.type = 1;
 	else
@@ -39,6 +41,50 @@ function Timer(time, type, id) {
 	this.id = id;
 }
 var timers = [];
+
+/*dumping ground for events
+*/
+function main() {
+	$( document ).ready(function() {
+		$("#timer_entry").children().children("input[type=number]")[0].focus();
+		//make ':' behave as a tab key
+		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
+			if (event.which == 16)
+				shiftKey = true;
+			if (event.which == 186)
+				if (shiftKey) {
+					if ($(document.activeElement).prop('name') === 'timer_hours')
+						$('#timer_minutes').focus();
+					else if ($(document.activeElement).prop('name') === 'timer_minutes')
+						$('#timer_seconds').focus();
+					else if ($(document.activeElement).prop('name') === 'timer_seconds')
+						$('#add_timer').focus();
+					else
+						alert('I have no idea how this happened');
+					}
+		});
+		$("#timer_entry").children().children("input[type=number]").on( "keyup", function( event ) {
+			if (event.which == 16)
+				shiftKey = false;
+		});
+		$("#radio0_span").on("click", function () {
+			$("#radio0").triggerHandler("click");
+		});
+		$("#radio1_span").on("click", function () {
+			$("#radio1").triggerHandler("click");
+		});
+		/*********************************************************************/
+		drawDigits();
+		$("#canvas").on("onloadeddata", function() {
+			getTimers();
+			updateClock();
+			clockIntervalID = setInterval(function () {updateClock()}, 1000);
+		});
+		$("#table_body").on("click", function( event ) {
+			selectTimer(event);
+		});
+	});
+} main();
 
 //create the digits 0-9 for later use by the clock update function in the canvas element
 function drawDigits() {
