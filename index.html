@@ -27,10 +27,10 @@
 					<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="SS (0-59)" style="width:100px" />
 				<label id="timer_warning">Expecting HH:MM:[:SS]</label>
 
-				<button type="button" onclick="attemptNewTimer()" class="btn btn-default">
+				<button type="button" id="add_timer" onclick="attemptNewTimer()" class="btn btn-default">
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
 				</button>
-				<button type="button" onclick="getTimers()" class="btn btn-default">
+				<button type="button" id="refresh_timer" onclick="getTimers()" class="btn btn-default">
 					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
 				</button>
 				<button type="button" id="delete_timer" onclick="deleteTimer()" class="btn btn-default" disabled="true">
@@ -38,7 +38,7 @@
 				</button>
 				
 				<input id="radio0" type="radio" name="radio" value=0 checked="checked" />Alarm
-				<input id="radio1" type="radio" name="radio" value=1 />Stopwatch
+				<input id="radio1" type="radio" name="radio" value=1 />Stop Watch
 			</div>
 		</form>
 		
@@ -79,6 +79,30 @@
 				</div>
 			</div>
 		</nav>
+		
+<!-- Button trigger modal 
+<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+  Launch demo modal
+</button>
+
+<!-- Modal 
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>-->
 
 <!--********************************************************************************************-->
 
@@ -88,7 +112,30 @@
 		<script src="index.js"></script>
 		<script>
 	var gg;//global variable for inspecting objects quickly
+	var shiftKey = false;
 	$( document ).ready(function() {
+		$("#timer_entry").children().children("input[type=number]")[0].focus();
+		//make : behave as a tab key
+		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
+			if (event.keyCode == 16)
+				shiftKey = true;
+			if (event.keyCode == 186)
+				if (shiftKey) {
+					if ($(document.activeElement).prop('name') === 'timer_hours')
+						$('#timer_minutes').focus();
+					else if ($(document.activeElement).prop('name') === 'timer_minutes')
+						$('#timer_seconds').focus();
+					else if ($(document.activeElement).prop('name') === 'timer_seconds')
+						$('#add_timer').focus();
+					else
+						alert('I have no idea how this happened');
+					}
+		});
+		$("#timer_entry").children().children("input[type=number]").on( "keyup", function( event ) {
+			if (event.keyCode == 16)
+				shiftKey = false;
+		});
+		/*********************************************************************/
 		drawDigits();
 		$("#canvas").on("onloadeddata", function() {
 			getTimers();
