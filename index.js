@@ -1,14 +1,13 @@
 //var newObject = jQuery.extend(true, {}, oldObject);//jQuery deep copy
-var gg;//global variable for inspecting objects quickly
-var digits = [];
+var digits = [];//imageData for digits 0-9 and the empty digit(pos 10)
+var lastDrawn = [11,12,13,14,15,16];//index represents position of the last drawn digit (value)
 var twenty_four_hour_clock = false;
-var clockIntervalID;
 var lengthOfSemiColon = 32;//cannot be measured in the image, so needs to be specified
 var timeAlarmExpires = 600;//in seconds
 var alarmDelay = 10;//time in seconds from start of alarm sound
 var alarmLastPlayed = 0;//ms since 1/1/1970
 var testLocal = location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
-var shiftKey = false;//may need to be global to persist through two events
+var shiftKey = false;//detect when shift is pressed within the input HH:MM:SS fields
 var colorEnum = {
 	outline:    -2, 
 	background: -1, 
@@ -17,13 +16,20 @@ var colorEnum = {
 	digitoff:    2};
 Object.freeze(colorEnum);//closest implementation to enum available
 
+{
+	var clockIntervalID;
+	var canvas;
+	var context;
+	var base_image;
+	var gg;//global variable for inspecting objects quickly
+}
+
 /*Timer "class"
 time
   Date object when timer expires
 type
   0 Alarm
-  1 StopWatch
-  2 Server-Side StopWatch that needs to mutate back to type=1 when local*/
+  1 Stop Watch*/
 function Timer(time, type, id) {
 	if (type == 1) {//the time given is milliseconds relative to today, so strip today midnight out to get the time from now that the timer will expire
 		var today = new Date();
@@ -32,12 +38,7 @@ function Timer(time, type, id) {
 	}
 	else
 		this.time = new Date(time);
-	//nonsense workaround that avoids nonsense computation
-	//instead of working around it, the type on the server could also be 0, but could be unsettling in UI for type to change, or UI doesn't need to display original timer entry type
-	if (type == 2)
-		this.type = 1;
-	else
-		this.type = type;
+	this.type = 0;
 	this.id = id;
 }
 var timers = [];
@@ -46,6 +47,8 @@ var timers = [];
 */
 function main() {
 	$( document ).ready(function() {
+		canvas = document.getElementById("canvas");
+		context = canvas.getContext('2d');
 		$("#timer_entry").children().children("input[type=number]")[0].focus();
 		//make ':' behave as a tab key
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
@@ -79,6 +82,32 @@ function main() {
 			getTimers();
 			updateClock();
 			clockIntervalID = setInterval(function () {updateClock()}, 1000);
+			$(window).on("resize", function () {
+				console.log($(window).width(), $(window).height());
+				//$("#canvas").css({translate: "scale(0.5, 0.5)"});
+				/*if ($(window).width() >= 904) {
+					canvas.width = base_image.width * 6 - lengthOfSemiColon;
+					canvas.height = base_image.height;
+					$("#canvas").css({transform: "scale(1, 1)"});
+				}
+				else {*///if ($(window).width() <= 592) {
+					//canvas.width = (base_image.width * 6 - lengthOfSemiColon) / 2;
+					//canvas.height = base_image.height / 2;
+					//$("#canvas").css({transform: "scale(0.5, 0.5)"});
+					//canvas.width = base_image.width * 6 - lengthOfSemiColon;
+					//canvas.height = base_image.height;
+				//}
+				/*if ($(window).width() <= 296) {
+					canvas.width = base_image.width * 4 - lengthOfSemiColon;
+					$("#canvas").css({transform: "scale(0.5, 0.5)"});
+				}
+				else if ($(window).width() <= 452) {
+				}
+				else if ($(window).width() <= 592) {
+				}
+				else {
+				}*/
+			});
 		});
 		$("#table_body").on("click", function( event ) {
 			selectTimer(event);
@@ -94,9 +123,9 @@ function drawDigits() {
 		digits[j].data[i+2] = CSScolor[2];
 		digits[j].data[i+3] = 255;
 	};
-	var canvas = document.getElementById("canvas");
-	var context = canvas.getContext('2d');
-	var base_image = new Image();
+	canvas = document.getElementById("canvas");
+	context = canvas.getContext('2d');
+	base_image = new Image();
 	base_image.onload = function() {
 		canvas.width = base_image.width * 6 - lengthOfSemiColon;
 		canvas.height = base_image.height * 1;
@@ -261,30 +290,44 @@ function updateClock() {
 	var context = canvas.getContext('2d');
 	var fillColor = $("#canvas").css("background-color").slice(4, -1).split(',');
 	context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
-	if (true) {//remove hours conditionally
-		if (hours > 9) {
-			context.putImageData(digits[Math.floor(hours / 10)], 0, 0);
+	//draw only digits that have changed
+	if (hours > 9) {
+		if (lastDrawn[0] != Math.floor(hours / 10)) {
+			lastDrawn[0] = Math.floor(hours / 10);
+			context.putImageData(digits[lastDrawn[0]], 0, 0);
 			context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
 		}
-		else {
-			if (false)
-				context.fillRect(0, 0, digits[0].width, digits[0].height);
-			else {//testing stylistic change
-			context.putImageData(digits[10], 0, 0);
-			context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
-			}
-		}
-		context.putImageData(digits[hours % 10], digits[0].width * 1, 0);
 	}
-	if (true) {//remove minutes conditionally
-		context.putImageData(digits[Math.floor(minutes / 10)], digits[0].width * 2, 0);
+	else {
+		if (lastDrawn[0] != 10) {
+			lastDrawn[0] = 10;
+			context.putImageData(digits[lastDrawn[0]], 0, 0);
+			context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+		}
+	}
+	if (lastDrawn[1] != hours % 10) {
+		lastDrawn[1] = hours % 10;
+		context.putImageData(digits[lastDrawn[1]], digits[0].width * 1, 0);
+	}
+	if (lastDrawn[2] != Math.floor(minutes / 10)) {
+		lastDrawn[2] = Math.floor(minutes / 10);
+		context.putImageData(digits[lastDrawn[2]], digits[0].width * 2, 0);
 		context.fillRect(digits[0].width * 3 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
-		context.putImageData(digits[minutes % 10], digits[0].width * 3, 0);
 	}
-	if (true) { //remove seconds conditionally<-- this condition is probably going to be screen width if canvas won't scale down nicely
-		context.putImageData(digits[Math.floor(seconds / 10)], digits[0].width * 4, 0);
-		context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
-		context.putImageData(digits[seconds % 10], digits[0].width * 5, 0);
+	if (lastDrawn[3] != minutes % 10) {
+		lastDrawn[3] = minutes % 10;
+		context.putImageData(digits[lastDrawn[3]], digits[0].width * 3, 0);
+	}
+	if (true) { //remove seconds conditionally if screen width on canvas won't scale down nicely
+		if (lastDrawn[4] != Math.floor(seconds / 10)) {
+			lastDrawn[4] = Math.floor(seconds / 10)
+			context.putImageData(digits[lastDrawn[4]], digits[0].width * 4, 0);
+			context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+		}
+		if (lastDrawn[5] != seconds % 10) {
+			lastDrawn[5] = seconds % 10;
+			context.putImageData(digits[lastDrawn[5]], digits[0].width * 5, 0);//the semi-colon would be truncated by the max length of the canvas
+		}
 	}
 	checkTimers();
 }
@@ -387,7 +430,7 @@ function buildTimerDOM() {
 //add recent timer to the DOM
 function addTimerDOM(i) {
 	var type = ['Alarm', 'Stop Watch'];
-	$('#table_body').append("<tr><td>" + type[timers[i].type] + "</td><td>" + timers[i].time.toLocaleString() + "</td><td>" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
+	$('#table_body').append("<tr><td>" + timers[i].time.toLocaleTimeString() + "</td><td>" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
 }
 
 //enables delete_timer button and add a class to visually indicate what timer is selected
@@ -492,7 +535,7 @@ function checkTimers() {
 				$("#audio")[0].play();
 			}
 		var td = $("#table_body > tr")[i].children;
-		td[2].innerText = timeRemaining(timers[i].time.getTime());
+		td[1].innerText = timeRemaining(timers[i].time.getTime());
 	}
 }
 
