@@ -50,16 +50,16 @@ function main() {
 		canvas = document.getElementById("canvas");
 		context = canvas.getContext('2d');
 		$("#timer_entry").children().children("input[type=number]")[0].focus();
-		//make ':' behave as a tab key
+		//make ':' behave as a tab key//doesn't work well with the other typing event
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
 			if (event.which == 16)
 				shiftKey = true;
 			if (event.which == 186)
 				if (shiftKey) {
 					if ($(document.activeElement).prop('name') === 'timer_hours')
-						$('#timer_minutes').focus();
+						$('#timer_minutes').select();
 					else if ($(document.activeElement).prop('name') === 'timer_minutes')
-						$('#timer_seconds').focus();
+						$('#timer_seconds').select();
 					else if ($(document.activeElement).prop('name') === 'timer_seconds')
 						$('#add_timer').focus();
 					else
@@ -351,6 +351,23 @@ function validateInput() {
 	var HH = getValue("#timer_hours");
 	var MM = getValue("#timer_minutes");
 	var SS = getValue("#timer_seconds");
+	//check who has focus here to validate and move onto another input automatically
+	//may have to find way to deal with event propagation when two are empty on first load of page
+	if ($(document.activeElement).prop("id") == "timer_hours") {
+		var tmp = HH.toString().substr(-2);
+		if ((tmp > 2 && tmp < 10) || (tmp.length == 2))
+			$('#timer_minutes').select();
+	}
+	else if ($(document.activeElement).prop("id") == "timer_minutes") {
+		var tmp = MM.toString().substr(-2);
+		if ((tmp > 5 && tmp < 10) || (tmp.length == 2))
+			$('#timer_seconds').select();
+	}
+	else if ($(document.activeElement).prop("id") == "timer_seconds") {
+		var tmp = SS.toString().substr(-2);
+		if ((tmp > 5 && tmp < 10) || (tmp.length == 2))
+			$('#add_timer').focus();
+	}
 	var today = new Date();
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
 		('0' + HH.toString()).substr(-2) + ':' + ('0' + MM.toString()).substr(-2) + ':' + ('0' + SS.toString()).substr(-2);
