@@ -8,6 +8,10 @@ var alarmDelay = 10;//time in seconds from start of alarm sound
 var alarmLastPlayed = 0;//ms since 1/1/1970
 var testLocal = location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
 var shiftKey = false;//detect when shift is pressed within the input HH:MM:SS fields
+var procTab = false;//
+var lastHH = 0;
+var lastMM = 0;
+var lastSS = 0;
 var colorEnum = {
 	outline:    -2, 
 	background: -1, 
@@ -56,7 +60,8 @@ function main() {
 				shiftKey = true;
 			if (event.which == 186)
 				if (shiftKey) {
-					if ($(document.activeElement).prop('name') === 'timer_hours')
+					procTab = true;}
+					/*if ($(document.activeElement).prop('name') === 'timer_hours')
 						$('#timer_minutes').select();
 					else if ($(document.activeElement).prop('name') === 'timer_minutes')
 						$('#timer_seconds').select();
@@ -64,7 +69,7 @@ function main() {
 						$('#add_timer').focus();
 					else
 						alert('I have no idea how this happened');
-					}
+					}*/
 		});
 		$("#timer_entry").children().children("input[type=number]").on( "keyup", function( event ) {
 			if (event.which == 16)
@@ -342,12 +347,28 @@ function validateInput() {
 	}
 	function getValue(jq){//get the value; if is not valid, set the form to 0; return the value on the form
 		var value = $(jq).val();
+		/*if (value.indexOf(':') != -1) {//check for tabbing behavior//won't work with type=number
+			value = value.replace(':');
+			procTab = true;
+		}*/
 		if (vi(value, jq)) {
-			$(jq).val(0);
-			return 0;
+			if (!procTab) {
+				$(jq).val(0);
+				return 0;
+			}
+			else
+				if (jq == "#timer_hours")
+					$(jq).val(lastHH);
+				else if (jq == "#timer_minutes")
+					$(jq).val(lastMM);
+				else if (jq == "#timer_seconds")
+					$(jq).val(lastSS);
+				else
+					alert("this shouldn't happen");
 		}
 		return value;
 	}
+	console.log($("#timer_hours").val(), $("#timer_minutes").val(), $("#timer_seconds").val());
 	var HH = getValue("#timer_hours");
 	var MM = getValue("#timer_minutes");
 	var SS = getValue("#timer_seconds");
@@ -355,18 +376,24 @@ function validateInput() {
 	//may have to find way to deal with event propagation when two are empty on first load of page
 	if ($(document.activeElement).prop("id") == "timer_hours") {
 		var tmp = HH.toString().substr(-2);
-		if ((tmp > 2 && tmp < 10) || (tmp.length == 2))
+		if ((tmp > 2 && tmp < 10) || (tmp.length == 2) || procTab)
 			$('#timer_minutes').select();
+		procTab=false;
+		lastHH = tmp;
 	}
 	else if ($(document.activeElement).prop("id") == "timer_minutes") {
 		var tmp = MM.toString().substr(-2);
-		if ((tmp > 5 && tmp < 10) || (tmp.length == 2))
+		if ((tmp > 5 && tmp < 10) || (tmp.length == 2) || procTab)
 			$('#timer_seconds').select();
+		procTab=false;
+		lastMM = tmp;
 	}
 	else if ($(document.activeElement).prop("id") == "timer_seconds") {
 		var tmp = SS.toString().substr(-2);
-		if ((tmp > 5 && tmp < 10) || (tmp.length == 2))
+		if ((tmp > 5 && tmp < 10) || (tmp.length == 2) || procTab)
 			$('#add_timer').focus();
+		procTab=false;
+		lastSS = tmp;
 	}
 	var today = new Date();
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
