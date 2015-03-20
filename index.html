@@ -14,10 +14,35 @@
 			<canvas class="container-fluid" id="canvas">
 				<!--<img id="broken" src="broken_lcd.png"></img>-->
 			</canvas>
+			<input type="color" id="canvas_color" name="canvas_color" style="{height:1px,width:1px}"/>
 		</div>
+		
+<!-- Button trigger modal 
+<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+  Launch demo modal
+</button>
+
+<!-- Modal 
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>-->
 
 		<!---->
-		<form id="timer_entry" class="navbar-form navbar-left" action="" method="post" oninput="validateInput()">
+		<form id="timer_entry" class="navbar-form navbar-left" action="" method="post">
 			<div class="form-group">
 				<label for="timer_hours" id="timer_hours_label">HH:</label>
 					<input id="timer_hours" name="timer_hours" type="number" min=0 max=23 placeholder="HH (0-24)" style="width:100px" />
@@ -27,13 +52,13 @@
 					<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="SS (0-59)" style="width:100px" />
 				<label id="timer_warning">Expecting HH:MM:[:SS]</label>
 
-				<button type="button" id="add_timer" onclick="attemptNewTimer()" class="btn btn-default">
+				<button type="button" id="add_timer" class="btn btn-default">
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
 				</button>
-				<button type="button" id="refresh_timer" onclick="getTimers()" class="btn btn-default">
+				<button type="button" id="refresh_timer" class="btn btn-default">
 					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
 				</button>
-				<button type="button" id="delete_timer" onclick="deleteTimer()" class="btn btn-default" disabled="true">
+				<button type="button" id="delete_timer" class="btn btn-default" disabled="true">
 					<span class="glyphicon glyphicon-trash" aria-hidden="true">Delete</span>
 				</button>
 				
@@ -85,34 +110,8 @@
 				</div>
 			</div>
 		</nav>
-		
-<!-- Button trigger modal 
-<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-  Launch demo modal
-</button>
-
-<!-- Modal 
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
-      </div>
-      <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div>
-  </div>
-</div>-->
 
 <!--********************************************************************************************-->
-
-		<!--<script src="//cdn.rawgit.com/jpillora/xdomain/0.6.17/dist/xdomain.min.js" slave="http://mgorgei.x10host.com/proxy.html"></script>-->
 		<script src="jquery-2.1.3.js"></script>
 		<script src="bs/js/bootstrap.js"></script>
 		<script src="index.js"></script>

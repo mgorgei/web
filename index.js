@@ -51,37 +51,9 @@ var timers = [];
 */
 function main() {
 	$( document ).ready(function() {
+		$("#timer_entry").children().children("input[type=number]")[0].focus();
 		canvas = document.getElementById("canvas");
 		context = canvas.getContext('2d');
-		$("#timer_entry").children().children("input[type=number]")[0].focus();
-		//make ':' behave as a tab key//doesn't work well with the other typing event
-		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
-			if (event.which == 16)
-				shiftKey = true;
-			if (event.which == 186)
-				if (shiftKey) {
-					procTab = true;}
-					/*if ($(document.activeElement).prop('name') === 'timer_hours')
-						$('#timer_minutes').select();
-					else if ($(document.activeElement).prop('name') === 'timer_minutes')
-						$('#timer_seconds').select();
-					else if ($(document.activeElement).prop('name') === 'timer_seconds')
-						$('#add_timer').focus();
-					else
-						alert('I have no idea how this happened');
-					}*/
-		});
-		$("#timer_entry").children().children("input[type=number]").on( "keyup", function( event ) {
-			if (event.which == 16)
-				shiftKey = false;
-		});
-		$("#radio0_span").on("click", function () {
-			$("#radio0").triggerHandler("click");
-		});
-		$("#radio1_span").on("click", function () {
-			$("#radio1").triggerHandler("click");
-		});
-		/*********************************************************************/
 		drawDigits();
 		$("#canvas").on("onloadeddata", function() {
 			getTimers();
@@ -89,36 +61,42 @@ function main() {
 			clockIntervalID = setInterval(function () {updateClock()}, 1000);
 			$(window).on("resize", function () {
 				console.log($(window).width(), $(window).height());
-				//$("#canvas").css({translate: "scale(0.5, 0.5)"});
-				/*if ($(window).width() >= 904) {
-					canvas.width = base_image.width * 6 - lengthOfSemiColon;
-					canvas.height = base_image.height;
-					$("#canvas").css({transform: "scale(1, 1)"});
-				}
-				else {*///if ($(window).width() <= 592) {
-					//canvas.width = (base_image.width * 6 - lengthOfSemiColon) / 2;
-					//canvas.height = base_image.height / 2;
-					//$("#canvas").css({transform: "scale(0.5, 0.5)"});
-					//canvas.width = base_image.width * 6 - lengthOfSemiColon;
-					//canvas.height = base_image.height;
-				//}
-				/*if ($(window).width() <= 296) {
-					canvas.width = base_image.width * 4 - lengthOfSemiColon;
-					$("#canvas").css({transform: "scale(0.5, 0.5)"});
-				}
-				else if ($(window).width() <= 452) {
-				}
-				else if ($(window).width() <= 592) {
-				}
-				else {
-				}*/
 			});
+		});
+		/*********************************************************************/
+		$("#canvas").on("click", function () {
+			//determine where you clicked to make context-sensitive color change for css
+			$("#canvas_color").trigger("click");
+			console.log("canvas");
+		});
+		//make ':' behave as a tab key
+		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
+			if (event.which == 16)
+				shiftKey = true;
+			if (event.which == 186)
+				if (shiftKey) {
+					procTab = true;
+				}
+		});
+		$("#timer_entry").children().children("input[type=number]").on( "keyup", function( event ) {
+			if (event.which == 16)
+				shiftKey = false;
+		});
+		$("timer_entry").on("input", validateInput);
+		$("#add_timer").on("click", attemptNewTimer);
+		$("#refresh_timer").on("click", getTimers);
+		$("#delete_timer").on("click", deleteTimer);
+		$("#radio0_span").on("click", function () {
+			$("#radio0").triggerHandler("click");
+		});
+		$("#radio1_span").on("click", function () {
+			$("#radio1").triggerHandler("click");
 		});
 		$("#table_body").on("click", function( event ) {
 			selectTimer(event);
 		});
 	});
-} main();
+} main();//run this function as fast as possible
 
 //create the digits 0-9 for later use by the clock update function in the canvas element
 function drawDigits() {
@@ -347,24 +325,18 @@ function validateInput() {
 	}
 	function getValue(jq){//get the value; if is not valid, set the form to 0; return the value on the form
 		var value = $(jq).val();
-		/*if (value.indexOf(':') != -1) {//check for tabbing behavior//won't work with type=number
-			value = value.replace(':');
-			procTab = true;
-		}*/
 		if (vi(value, jq)) {
 			if (!procTab) {
 				$(jq).val(0);
 				return 0;
 			}
-			else
+			else//set input to last valid value if ':' was pressed
 				if (jq == "#timer_hours")
 					$(jq).val(lastHH);
 				else if (jq == "#timer_minutes")
 					$(jq).val(lastMM);
-				else if (jq == "#timer_seconds")
+				else //if (jq == "#timer_seconds")
 					$(jq).val(lastSS);
-				else
-					alert("this shouldn't happen");
 		}
 		return value;
 	}
