@@ -319,7 +319,7 @@ function updateClock() {
 
 //determine which css color sample matches then change the color on the canvas
 function canvasColor(propThis, e) {
-	function match(cssColor) {
+	function match(cssColor) {//find the first css color that matches the pixel that was clicked
 		var color = $("#canvas").css(cssColor).slice(4, -1).split(',');
 		for (var i = 0; i < 3; i++)
 			if (color[i] != sample[i])
@@ -338,15 +338,13 @@ function canvasColor(propThis, e) {
 			var color = $("#canvas").css(colors[i]).slice(4, -1).split(',');
 			$("#color_picker").val(strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
 			$("#color_picker").show();
-			$("#color_picker").triggerHandler("click");
+			$("#color_picker")[0].color.showPicker();
 			$("#color_picker").one("change", function () {//one time event
-				console.log($("#color_picker").val());
-				console.log($("#canvas").css(colors[i]));
 				$("#canvas").css(colors[i], "#" + $("#color_picker").val());
 				if (colors[i] === "background-color")
 					$(".canvas").css(colors[i], "#" + $("#color_picker").val())
-				console.log($("#canvas").css(colors[i]));
 				$("#color_picker").hide();
+				$("#color_picker")[0].color.hidePicker();
 				reDraw();
 			});
 			break;
