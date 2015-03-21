@@ -8,7 +8,7 @@ var alarmDelay = 10;//time in seconds from start of alarm sound
 var alarmLastPlayed = 0;//ms since 1/1/1970
 var testLocal = location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
 var shiftKey = false;//detect when shift is pressed within the input HH:MM:SS fields
-var procTab = false;//
+var procTab = false;//save pressing ':' in keydown/keyup event for use in oninput event since type=number doesn't give non-number characters
 var lastHH = 0;
 var lastMM = 0;
 var lastSS = 0;
@@ -42,7 +42,7 @@ function Timer(time, type, id) {
 	}
 	else
 		this.time = new Date(time);
-	this.type = 0;
+	this.type = 0;//type is only useful for calculating it to a common time format
 	this.id = id;
 }
 var timers = [];
@@ -64,10 +64,8 @@ function main() {
 			});
 		});
 		/*********************************************************************/
-		$("#canvas").on("click", function () {
-			//determine where you clicked to make context-sensitive color change for css
-			$("#canvas_color").trigger("click");
-			console.log("canvas");
+		$("#canvas").on("click", function (e) {
+			canvasColor(this, e);
 		});
 		//make ':' behave as a tab key
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
@@ -138,6 +136,12 @@ function drawDigits() {
 	}
 	//base_image.crossOrigin = "use-credentials";//'anonymous';
 	base_image.src = 'images/digit.png'; //src needs to be specified after onload event	
+}
+
+//change digits with the new color and draw every digit again
+function reDraw() {
+	drawDigits();
+	lastDrawn = [11,12,13,14,15,16];
 }
 
 /*identify specific regions of an image to be colored
@@ -269,8 +273,6 @@ function updateClock() {
 	var month = d.getMonth();
 	var year = d.getFullYear();
 	var monthText = getMonthText(month);
-	var canvas = document.getElementById("canvas");
-	var context = canvas.getContext('2d');
 	var fillColor = $("#canvas").css("background-color").slice(4, -1).split(',');
 	context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
 	//draw only digits that have changed
@@ -313,6 +315,42 @@ function updateClock() {
 		}
 	}
 	checkTimers();
+}
+
+//determine which css color sample matches then change the color on the canvas
+function canvasColor(propThis, e) {
+	function match(cssColor) {
+		var color = $("#canvas").css(cssColor).slice(4, -1).split(',');
+		for (var i = 0; i < 3; i++)
+			if (color[i] != sample[i])
+				return false;
+		return true;
+	}
+	//determine where you clicked to make context-sensitive color change for css
+	var x = Math.floor(e.pageX - $(propThis).offset().left);
+	var y = Math.floor(e.pageY - $(propThis).offset().top);
+	var sample = context.getImageData(x, y, 1, 1).data;
+	var colors = ["color", "outline-color", "background-color", "border-bottom-color"];
+	var mapping = ["Digit On", "Digit Off", "Background Color", "Outline Color"];
+	for (var i = 0; i < colors.length; i++)
+		if (match(colors[i])) {
+			//call a palette change dialogue
+			var color = $("#canvas").css(colors[i]).slice(4, -1).split(',');
+			$("#color_picker").val(strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
+			$("#color_picker").show();
+			$("#color_picker").triggerHandler("click");
+			$("#color_picker").one("change", function () {//one time event
+				console.log($("#color_picker").val());
+				console.log($("#canvas").css(colors[i]));
+				$("#canvas").css(colors[i], "#" + $("#color_picker").val());
+				if (colors[i] === "background-color")
+					$(".canvas").css(colors[i], "#" + $("#color_picker").val())
+				console.log($("#canvas").css(colors[i]));
+				$("#color_picker").hide();
+				reDraw();
+			});
+			break;
+		}
 }
 
 /*supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is interpreted as a time for today by the parser

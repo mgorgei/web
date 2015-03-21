@@ -11,10 +11,10 @@
 	<body>
 		<!---->
 		<div class="canvas container-fluid">
-			<canvas class="container-fluid" id="canvas">
+			<canvas id="canvas">
 				<!--<img id="broken" src="broken_lcd.png"></img>-->
 			</canvas>
-			<input type="color" id="canvas_color" name="canvas_color" style="{height:1px,width:1px}"/>
+			<input id="color_picker" class="color" hidden />
 		</div>
 		
 <!-- Button trigger modal 
@@ -112,6 +112,7 @@
 		</nav>
 
 <!--********************************************************************************************-->
+		<script src="jscolor/jscolor.js"></script>
 		<script src="jquery-2.1.3.js"></script>
 		<script src="bs/js/bootstrap.js"></script>
 		<script src="index.js"></script>
