@@ -583,6 +583,9 @@ function checkTimers() {
 		if (Date.now() > timers[i].time.getTime() && Date.now() < timers[i].time.getTime() + timeAlarmExpires * 1000)
 			if (Date.now() > alarmLastPlayed + alarmDelay * 1000) {
 				//show which tr element is playing this sound
+				var tmp = '<span name="temp" class="glyphicon glyphicon-volume-up" aria-hidden="true" style="padding-left:8px"></span>';
+				$("#table_body > tr:eq(" + i + ")").children(":eq(0)").append(tmp);
+				$("span[name=temp]").fadeOut(1000, function() {$(this).remove();});
 				alarmLastPlayed = Date.now();
 				$("#audio")[0].play();
 			}
@@ -608,5 +611,5 @@ function timeRemaining(time) {
 }
 
 function strToHex(str) {
-	return ('0' + parseInt(str).toString(16)).substr(-2);
+	return ('0' + parseInt(str).toString(16)).substr(-2).toUpperCase();
 }
