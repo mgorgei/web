@@ -3,7 +3,6 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">-->
 		<title>New Tab()</title>
 		<link rel="stylesheet" href="index.css">
 		<link rel="stylesheet" href="bs/css/bootstrap.min.css">
@@ -12,7 +11,7 @@
 		<!---->
 		<div class="canvas container-fluid">
 			<canvas id="canvas">
-				<!--<img id="broken" src="broken_lcd.png"></img>-->
+				<!--<img id="broken" src="digit.png"></img>-->
 			</canvas>
 			<input id="color_picker" class="color" hidden />
 		</div>
@@ -42,16 +41,21 @@
 </div>-->
 
 		<!---->
-		<form id="timer_entry" class="navbar-form navbar-left" action="" method="post">
+		<form id="timer_entry" class="form-inline" action="" method="post">
+			<div class="input-group">
+				<label class="input-group-addon">HH</label>
+					<input id="timer_hours" name="timer_hours" type="number" min=0 max=23 placeholder="(0-23)" class="form-control" />
+			</div>
+			<div class="input-group">
+				<label class="input-group-addon">MM</label>
+					<input id="timer_minutes" name="timer_minutes" type="number" min=0 max=59 placeholder="(0-59)" class="form-control" />
+			</div>
+			<div class="input-group">
+				<label class="input-group-addon">SS</label>
+					<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="(0-59)" class="form-control" />
+			</div>
+				
 			<div class="form-group">
-				<label for="timer_hours" id="timer_hours_label">HH:</label>
-					<input id="timer_hours" name="timer_hours" type="number" min=0 max=23 placeholder="HH (0-24)" style="width:100px" />
-				<label for="timer_minutes" id="timer_minutes_label">MM:</label>
-					<input id="timer_minutes" name="timer_minutes" type="number" min=0 max=59 placeholder="MM (0-59)" style="width:100px" />
-				<label for="timer_seconds" id="timer_seconds_label">SS:</label>
-					<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="SS (0-59)" style="width:100px" />
-				<label id="timer_warning">Expecting HH:MM:[:SS]</label>
-
 				<button type="button" id="add_timer" class="btn btn-default">
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
 				</button>
@@ -61,11 +65,15 @@
 				<button type="button" id="delete_timer" class="btn btn-default" disabled="true">
 					<span class="glyphicon glyphicon-trash" aria-hidden="true">Delete</span>
 				</button>
+			</div>
 				
+			<div class="form-control">
 				<span id="radio0_span">
 					<input id="radio0" type="radio" name="radio" value=0 checked="checked" />
 					<label for="radio0" id="radio0_label">Alarm</label>
 				</span>
+			</div>
+			<div class="form-control">
 				<span id="radio1_span">
 					<input id="radio1" type="radio" name="radio" value=1 />
 					<label for="radio1" id="radio1_label">Stop Watch</label>
@@ -76,7 +84,7 @@
 		<!---->
 		<table id="timer_table" class="table table-bordered table-responsive">
 			<thead>
-				<tr><th>Time</th><th>Remaining</th></tr>
+				<tr><th class="col-md-6">Time</th><th class="col-md-6">Remaining</th></tr>
 			</thead>
 			<tbody id="table_body">
 				<!--dynamically built-->
