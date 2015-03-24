@@ -51,7 +51,8 @@ var timers = [];
 */
 function main() {
 	$( document ).ready(function() {
-		$("#timer_entry").children().children("input[type=number]")[0].focus();
+		//$("#timer_entry").children().children("input[type=number]")[0].focus();
+		$("#timer_hours").focus();
 		canvas = document.getElementById("canvas");
 		context = canvas.getContext('2d');
 		drawDigits();
@@ -80,7 +81,7 @@ function main() {
 			if (event.which == 16)
 				shiftKey = false;
 		});
-		$("timer_entry").on("input", validateInput);
+		$("#timer_entry").on("input", validateInput);
 		$("#add_timer").on("click", attemptNewTimer);
 		$("#refresh_timer").on("click", getTimers);
 		$("#delete_timer").on("click", deleteTimer);
@@ -409,13 +410,13 @@ function validateInput() {
 	var d = Date.parse(ps);
 	if(! isNaN(d)) {
 		console.log(new Date(d), ps);
-		$("#timer_warning").hide();
+		//$("#timer_warning").hide();
 		return ps;
 	}
 	else {
 		console.log('invalid', ps);
-		$("#timer_warning").show();
-		alert('still need warning label');
+		//$("#timer_warning").show();
+		//alert('still need warning label');
 	}
 	return false;
 }
@@ -437,7 +438,7 @@ function getTimers() {
 	}
 	else {//get timers from server//these values aren't coming back as expected for stopwatches
 		$.ajax({
-			url : "/ajax.php",//these are linked absolute in hopes of using cross site origin (local testing without having local virtual server)
+			url : "/ajax.php",
 			data : "timers",
 			type : "GET",
 			success: function(data) {
@@ -482,7 +483,7 @@ function buildTimerDOM() {
 //add recent timer to the DOM
 function addTimerDOM(i) {
 	var type = ['Alarm', 'Stop Watch'];
-	$('#table_body').append("<tr><td>" + timers[i].time.toLocaleTimeString() + "</td><td>" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
+	$('#table_body').append("<tr><td class=\"col-md-6\">" + timers[i].time.toLocaleTimeString() + "</td><td class=\"col-md-6\">" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
 }
 
 //enables delete_timer button and add a class to visually indicate what timer is selected
