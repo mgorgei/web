@@ -51,11 +51,11 @@ var timers = [];
 */
 function main() {
 	$( document ).ready(function() {
-		//$("#timer_entry").children().children("input[type=number]")[0].focus();
 		$("#timer_hours").focus();
 		canvas = document.getElementById("canvas");
 		context = canvas.getContext('2d');
 		drawDigits();
+		$('[data-toggle="popover"]').popover()
 		$("#canvas").on("onloadeddata", function() {
 			getTimers();
 			updateClock();
@@ -68,7 +68,7 @@ function main() {
 		$("#canvas").on("click", function (e) {
 			canvasColor(this, e);
 		});
-		//make ':' behave as a tab key
+		//make ':' behave as a tab key by capturing simultaneous SHIFT + ';' key presses
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
 			if (event.which == 16)
 				shiftKey = true;
@@ -95,7 +95,7 @@ function main() {
 			selectTimer(event);
 		});
 	});
-} main();//run this function as fast as possible
+} main();//run this function as soon as possible
 
 //create the digits 0-9 for later use by the clock update function in the canvas element
 function drawDigits() {
@@ -352,10 +352,14 @@ function canvasColor(propThis, e) {
 		}
 }
 
-/*supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is interpreted as a time for today by the parser
-rfc2822*/
-//having newly valid input or typing ':' on a valid input should auto tab over to the next point
-//force unexpected input to 0; confirm input is valid by successful creation of a Date object
+/*validate user input can be interpreted as a valid time for today
+
+  supply "MM DD YYYY " so that the time "HH[:MM][:SS][:MS]" in the input box is
+  interpreted as a time for today by the parser according to rfc2822.
+  having complete input or typing ':' on a valid input will behave as a tab 
+  over to the next element.  Force any unexpected input to 0; confirm input is
+  valid by successful creation of a Date object.
+*/
 function validateInput() {
 	function vi(i, jq){//make sure input is set to a number and is within the valid range
 		return (isNaN(i) || i == "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
@@ -382,7 +386,6 @@ function validateInput() {
 	var MM = getValue("#timer_minutes");
 	var SS = getValue("#timer_seconds");
 	//check who has focus here to validate and move onto another input automatically
-	//may have to find way to deal with event propagation when two are empty on first load of page
 	if ($(document.activeElement).prop("id") == "timer_hours") {
 		var tmp = HH.toString().substr(-2);
 		if ((tmp > 2 && tmp < 10) || (tmp.length == 2) || procTab)
@@ -410,71 +413,17 @@ function validateInput() {
 	var d = Date.parse(ps);
 	if(! isNaN(d)) {
 		console.log(new Date(d), ps);
-		//$("#timer_warning").hide();
 		return ps;
 	}
 	else {
 		console.log('invalid', ps);
-		//$("#timer_warning").show();
-		//alert('still need warning label');
-	}
-	return false;
-}
-
-//get the timers from either the server or locally on failure
-function getTimers() {
-	function fallback(today)//get timers locally for testing or fallback
-	{
-		timers[0] = new Timer(Date.parse(today + '11:05'), 0, -1);
-		timers[1] = new Timer(Date.parse(today + '17:10'), 0, -1);
-		timers[2] = new Timer(Date.parse(today + '19:25'), 0, -1);
-	}
-	var today = new Date();
-	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ';
-	timers = [];
-	if (testLocal) {
-		fallback(today);
-		buildTimerDOM();
-	}
-	else {//get timers from server//these values aren't coming back as expected for stopwatches
-		$.ajax({
-			url : "/ajax.php",
-			data : "timers",
-			type : "GET",
-			success: function(data) {
-				if (data) {
-					console.log("success", data);//pretty lame that this is calling success on empty data all the time...
-					var i = 0;
-					data.toString().split('\n').forEach(function (line) {
-						if (line !== "") {
-							console.log(line);
-							line = line.split('\t');
-							console.log(line);
-							if (line[1] == '0')
-								timers[i] = new Timer(Date.parse(today + line[2]), line[1], line[0]);
-							else
-								timers[i] = new Timer(Date.parse(today + line[2]), 2, line[0]);
-							console.log(timers);
-							i++;
-						}
-					});
-				}
-			},
-			error: function() {
-				console.log("error");
-				fallback(today);
-			},
-			complete: function() {
-				buildTimerDOM();
-				console.log("complete");
-			}
-		});
+		return false;
 	}
 }
 
 //build DOM from existing timers
 function buildTimerDOM() {
-	$("#table_body > tr").slice(0).remove();//possibly dangerous value!!
+	$("#table_body > tr").slice(0).remove();
 	for (var i = 0; i < timers.length; i++) {
 		addTimerDOM(i);
 	}
@@ -498,45 +447,55 @@ function selectTimer(event/*<-why is that not required? event is global or someh
 	}
 }
 
-//delete selected timers[index] and disable the delete_timer button because nothing is selected in the table
-function deleteTimer() {
-	var index = $(".timer_table_selected").index();
-	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
-		console.log(index);
-		if (timers[index].id >= 0) {//don't delete if the id is negative (indicates a local timer not synced with server)
-			if (!testLocal) {
-				ajaxData = 'D' + timers[index].id;
-				$.ajax({
-					url : "/ajax.php",
-					data : ajaxData,
-					type : "GET",//server? does not respond to any non-GET data without a hard fail
-					success: function(data) {
-						console.log("success", data);
-					},
-					error: function() {
-						console.log("error");
-					},
-					complete: function() {
-						console.log("complete");
-					}
-				});
-			}
-		}
-		$(".timer_table_selected").fadeOut(1000, function() {
-			//$("").prop("height");
-			/*$("tr").animate(//move up everything beneath this index by the height of the tr
-			{
-				top: "-=38px"
-			}, 10000, function () {*/
-			
-				timers.splice(index, 1);//delete selected index
-				$('#table_body tr')[index].remove();
-				$("#delete_timer").prop('disabled', true);
-			});
-		//});
+//get the timers from either the server or locally on failure
+function getTimers() {
+	function fallback(today)//get timers locally for testing or fallback
+	{
+		timers[0] = new Timer(Date.parse(today + '11:05'), 0, -1);
+		timers[1] = new Timer(Date.parse(today + '17:10'), 0, -1);
+		timers[2] = new Timer(Date.parse(today + '19:25'), 0, -1);
 	}
-	else
-		alert("Nothing selected!");
+	var today = new Date();
+	today = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ';
+	timers = [];
+	if (testLocal) {
+		fallback(today);
+		buildTimerDOM();
+	}
+	else {//get timers from server
+		$.ajax({
+			url : window.location.pathname + "ajax.php",
+			data : 'R',//'R' is prepended to represent a GET (Read) request via GET
+			type : "GET",
+			/*contentType: 'text/plain',
+			crossDomain: true,*/
+			success: function(data) {
+				if (data) {
+					console.log("success", data);//pretty lame that this is calling success on empty data all the time...
+					var i = 0;
+					data.toString().split('\n').forEach(function (line) {
+						if (line !== "") {
+							line = line.split('\t');
+							if (line[1] == '0')
+								timers[i] = new Timer(Date.parse(today + line[2]), line[1], line[0]);
+							else
+								timers[i] = new Timer(Date.parse(today + line[2]), 2, line[0]);
+							i++;
+						}
+					});
+				}
+			},
+			error: function() {
+				console.log("error");
+				fallback(today);
+			},
+			complete: function() {
+				buildTimerDOM();
+				console.log("complete");
+				gg = this;
+			}
+		});
+	}
 }
 
 //check if the timer has valid (Date)Time input, no duplicate, if so add it to the DOM
@@ -556,11 +515,12 @@ function attemptNewTimer() {
 		if (!dupe) {
 			if (!testLocal) {
 				var t = timers[i].time.toTimeString()
-				ajaxData = 'P' + t.substr(0, t.indexOf(' ')) + ',' + timers[i].type;
 				$.ajax({
-					url : "/ajax.php",
-					data : ajaxData,
-					type : "GET",//cannot use POST on server...
+					url : window.location.pathname + "ajax.php",
+					data : 'C' + t.substr(0, t.indexOf(' ')) + ',' + timers[i].type,//'C' is prepended to represent a fake POST (Create) request via GET
+					type : "GET",
+					/*contentType: 'text/plain',
+					crossDomain: true,*/
 					success: function(data) {
 						console.log("success", data);
 						timers[i].id = data;
@@ -570,12 +530,56 @@ function attemptNewTimer() {
 					},
 					complete: function() {
 						console.log("complete");
+						gg = this;
 					}
 				});
 			}
 			addTimerDOM(i);
 		}
 	}
+}
+
+//delete selected timers[index] and disable the delete_timer button because nothing is selected in the table
+function deleteTimer() {
+	var index = $(".timer_table_selected").index();
+	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
+		console.log(index);
+		if (timers[index].id >= 0) {//don't delete if the id is negative (indicates a local timer not synced with server)
+			if (!testLocal) {
+				$.ajax({
+					url : window.location.pathname + "ajax.php",
+					data : 'D' + timers[index].id,//'D' is prepended to represent a fake DELETE (Delete) request via GET
+					type : "GET",
+					/*contentType: 'text/plain',
+					crossDomain: true,*/
+					success: function(data) {
+						console.log("success", data);
+					},
+					error: function() {
+						console.log("error");
+					},
+					complete: function() {
+						console.log("complete");
+						gg = this;
+					}
+				});
+			}
+		}
+		$("#delete_timer").prop('disabled', true);
+		$(".timer_table_selected").fadeOut(1000, function() {
+			//$("").prop("height");
+			/*$("tr").animate(//move up everything beneath this index by the height of the tr
+			{
+				top: "-=38px"
+			}, 10000, function () {*/
+			
+				timers.splice(index, 1);//delete selected index
+				$('#table_body tr')[index].remove();
+			});
+		//});
+	}
+	else
+		alert("Nothing selected!");
 }
 
 //play audio for (recently) expired timers; display time remaining on active timers
@@ -613,4 +617,29 @@ function timeRemaining(time) {
 
 function strToHex(str) {
 	return ('0' + parseInt(str).toString(16)).substr(-2).toUpperCase();
+}
+
+//code for helping me determine my free host doesn't support PUT / DELETE requests at all
+function createCORSRequest(method, url) {
+  var xhr = new XMLHttpRequest();
+  if ("withCredentials" in xhr) {
+
+    // Check if the XMLHttpRequest object has a "withCredentials" property.
+    // "withCredentials" only exists on XMLHTTPRequest2 objects.
+    xhr.open(method, url, true);
+
+  } else if (typeof XDomainRequest != "undefined") {
+
+    // Otherwise, check if XDomainRequest.
+    // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+    xhr = new XDomainRequest();
+    xhr.open(method, url);
+
+  } else {
+
+    // Otherwise, CORS is not supported by the browser.
+    xhr = null;
+
+  }
+  return xhr;
 }
