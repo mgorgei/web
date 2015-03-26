@@ -1,14 +1,5 @@
 <?php
 include 'pwds.php';
-/*my free server host won't play nice with DELETE / PUT / etc. requests (need a
-  workaround) -> first character of the query string indicates what the
-  original request was supposed to be in CRUD.
-  CRUD in a GET request
-  C == Create 
-  R == Read (already correctly handled by GET)
-  U == Update
-  D == Delete
-*/
 try {
 	$dbh = new PDO($dsn, $username, $password, $options);
 	$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -18,38 +9,53 @@ catch(PDOException $e) {
 	echo $e->getMessage();
 	die('why you die');
 }
+//get the JSON data for processing
 if ($_SERVER["REQUEST_METHOD"] === 'GET') {
-	//Read request R == Read
-	if (substr($_SERVER["QUERY_STRING"], 0, 1) === 'R') {
+	$data = $_SERVER["QUERY_STRING"];
+}
+else {
+	$data = file_get_contents('php://input');//POST, PUT, DELETE won't use $_SERVER["QUERY_STRING"]
+}
+$js = json_decode(rawurldecode($data));
+
+//deal with timers
+if (isset($js->timers)) {
+	//GET READ //{"timers":[{"READ":"all"}]}
+	if ($_SERVER["REQUEST_METHOD"] === 'GET' and isset($js->timers[0]->READ)) {
 		$sql = 'SELECT id, type, time FROM `Timer`';
 		foreach ($dbh->query($sql) as $row) {
 			echo $row['id'] . "\t";
 			echo $row['type'] . "\t";
 			echo $row['time'] . "\n";
 		}
+		exit();
 	}
-	//Create request C == Create
-	elseif (substr($_SERVER["QUERY_STRING"], 0, 1) === 'C') {
-		$input = explode(',', substr($_SERVER["QUERY_STRING"], 1));//typical value-> C17:10:00,0
-		if (is_numeric(str_replace(':', '', $input[0])) and is_numeric($input[1])) {
-			$sql = 'INSERT INTO `Timer` (`time`, `type`) VALUES (\'' . $input[0] . '\', \'' . $input[1] . '\');';
+	//POST CREATE //{"timers":[{"CREATE":"time"}]}
+	elseif ($_SERVER["REQUEST_METHOD"] === 'POST' and isset($js->timers[0]->CREATE)) {
+		if (is_numeric(str_replace(':', '', $js->timers[0]->CREATE))) {
+			$sql = 'INSERT INTO `Timer` (`time`, `type`) VALUES (\'' . $js->timers[0]->CREATE . '\', \'' . 0 . '\');';
 			$dbh->query($sql);
 			//getting the MAX id should get the latest created auto increment primary key value to pass back to the application
 			$sql = 'SELECT MAX(id) as \'m\' FROM `Timer`';
 			foreach ($dbh->query($sql) as $row)
 				echo $row['m'];
+			exit();
 		}
 	}
-	//Delete request D == Delete
-	elseif (substr($_SERVER["QUERY_STRING"], 0, 1) === 'D') {
-		if (is_numeric(substr($_SERVER["QUERY_STRING"], 1))) {
-			$sql = 'DELETE FROM `Timer` WHERE id=' . substr($_SERVER["QUERY_STRING"], 1);
+	//DELETE DELETE //{"timers":[{"DELETE":"id"}]}
+	elseif ($_SERVER["REQUEST_METHOD"] === 'DELETE' and isset($js->timers[0]->DELETE)) {
+		if (is_numeric($js->timers[0]->DELETE)) {
+			$sql = 'DELETE FROM `Timer` WHERE id=' . $js->timers[0]->DELETE;
 			$dbh->query($sql);
+			exit();
 		}
 	}
 }
+//did not recognize the JSON given
 else {
-	header("HTTP/1.1 406 Not Acceptable");
+	header("HTTP/1.1 418 I'm a teapot");
 	exit();
 }
+//in case anything slips partially by, but does not complete via exit()
+header("HTTP/1.1 406 Not Acceptable");
 ?>
