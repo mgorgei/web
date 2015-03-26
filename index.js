@@ -55,14 +55,19 @@ function main() {
 		canvas = document.getElementById("canvas");
 		context = canvas.getContext('2d');
 		drawDigits();
-		$('[data-toggle="popover"]').popover()
+		$('[data-toggle="popover"]').popover({
+			/*container: 'body',*/
+			trigger: 'hover',
+			delay: '200'
+		});
 		$("#canvas").on("onloadeddata", function() {
+			//return;//temporary
 			getTimers();
 			updateClock();
 			clockIntervalID = setInterval(function () {updateClock()}, 1000);
-			$(window).on("resize", function () {
+			/*$(window).on("resize", function () {
 				console.log($(window).width(), $(window).height());
-			});
+			});*/
 		});
 		/*********************************************************************/
 		$("#canvas").on("click", function (e) {
@@ -85,12 +90,6 @@ function main() {
 		$("#add_timer").on("click", attemptNewTimer);
 		$("#refresh_timer").on("click", getTimers);
 		$("#delete_timer").on("click", deleteTimer);
-		$("#radio0_span").on("click", function () {
-			$("#radio0").triggerHandler("click");
-		});
-		$("#radio1_span").on("click", function () {
-			$("#radio1").triggerHandler("click");
-		});
 		$("#table_body").on("click", function( event ) {
 			selectTimer(event);
 		});
@@ -465,13 +464,11 @@ function getTimers() {
 	else {//get timers from server
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
-			data : 'R',//'R' is prepended to represent a GET (Read) request via GET
+			data : escape('{"timers":[{"READ":"all"}]}'),
 			type : "GET",
-			/*contentType: 'text/plain',
-			crossDomain: true,*/
 			success: function(data) {
 				if (data) {
-					console.log("success", data);//pretty lame that this is calling success on empty data all the time...
+					console.log("success", data);
 					var i = 0;
 					data.toString().split('\n').forEach(function (line) {
 						if (line !== "") {
@@ -514,13 +511,14 @@ function attemptNewTimer() {
 			}
 		if (!dupe) {
 			if (!testLocal) {
-				var t = timers[i].time.toTimeString()
+				var t = timers[i].time.toTimeString();
+				var obj = JSON.parse('{"timers":[{"CREATE":"time"}]}');
+				obj.timers[0]['CREATE'] = t.substr(0, t.indexOf(' '));
+				gg = obj;
 				$.ajax({
 					url : window.location.pathname + "ajax.php",
-					data : 'C' + t.substr(0, t.indexOf(' ')) + ',' + timers[i].type,//'C' is prepended to represent a fake POST (Create) request via GET
-					type : "GET",
-					/*contentType: 'text/plain',
-					crossDomain: true,*/
+					data : escape(JSON.stringify(obj)),
+					type : "POST",
 					success: function(data) {
 						console.log("success", data);
 						timers[i].id = data;
@@ -546,12 +544,12 @@ function deleteTimer() {
 		console.log(index);
 		if (timers[index].id >= 0) {//don't delete if the id is negative (indicates a local timer not synced with server)
 			if (!testLocal) {
+				var obj = JSON.parse('{"timers":[{"DELETE":"id"}]}');
+				obj.timers[0]['DELETE'] = timers[index].id;
 				$.ajax({
 					url : window.location.pathname + "ajax.php",
-					data : 'D' + timers[index].id,//'D' is prepended to represent a fake DELETE (Delete) request via GET
-					type : "GET",
-					/*contentType: 'text/plain',
-					crossDomain: true,*/
+					data : escape(JSON.stringify(obj)),
+					type : "DELETE",
 					success: function(data) {
 						console.log("success", data);
 					},
@@ -617,29 +615,4 @@ function timeRemaining(time) {
 
 function strToHex(str) {
 	return ('0' + parseInt(str).toString(16)).substr(-2).toUpperCase();
-}
-
-//code for helping me determine my free host doesn't support PUT / DELETE requests at all
-function createCORSRequest(method, url) {
-  var xhr = new XMLHttpRequest();
-  if ("withCredentials" in xhr) {
-
-    // Check if the XMLHttpRequest object has a "withCredentials" property.
-    // "withCredentials" only exists on XMLHTTPRequest2 objects.
-    xhr.open(method, url, true);
-
-  } else if (typeof XDomainRequest != "undefined") {
-
-    // Otherwise, check if XDomainRequest.
-    // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
-    xhr = new XDomainRequest();
-    xhr.open(method, url);
-
-  } else {
-
-    // Otherwise, CORS is not supported by the browser.
-    xhr = null;
-
-  }
-  return xhr;
 }
