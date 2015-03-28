@@ -111,10 +111,10 @@ function drawDigits() {
 		canvas.width = base_image.width * 6 - lengthOfSemiColon;
 		canvas.height = base_image.height * 1;
 		context.drawImage(base_image, 0, 0);
-		var colorDigit = $("#canvas").css("color").slice(4, -1).split(',');
-		var colorDigitOff = $("#canvas").css("outline-color").slice(4, -1).split(',');
-		var colorBackground = $("#canvas").css("background-color").slice(4, -1).split(',');
-		var colorOutline = $("#canvas").css("border-bottom-color").slice(4, -1).split(',');
+		var colorDigit = $(".digitOn").css("color").slice(4, -1).split(',');
+		var colorDigitOff = $(".digitOff").css("color").slice(4, -1).split(',');
+		var colorBackground = $(".digitBackground").css("color").slice(4, -1).split(',');
+		var colorOutline = $(".digitOutline").css("color").slice(4, -1).split(',');
 		var imageData = context.getImageData(0, 0, base_image.width, base_image.height);
 		for (var j = 0; j < 11; j++) {
 			digits[j] = context.createImageData(base_image.width, base_image.height);
@@ -273,7 +273,7 @@ function updateClock() {
 	var month = d.getMonth();
 	var year = d.getFullYear();
 	var monthText = getMonthText(month);
-	var fillColor = $("#canvas").css("background-color").slice(4, -1).split(',');
+	var fillColor = $(".digitBackground").css("color").slice(4, -1).split(',');
 	context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
 	//draw only digits that have changed
 	if (hours > 9) {
@@ -317,10 +317,10 @@ function updateClock() {
 	checkTimers();
 }
 
-//determine which css color sample matches then change the color on the canvas
+//determine which css class sample matches then change the color on the canvas
 function canvasColor(propThis, e) {
-	function match(cssColor) {//find the first css color that matches the pixel that was clicked
-		var color = $("#canvas").css(cssColor).slice(4, -1).split(',');
+	function match(cssClass) {//find the first css class color that matches the pixel that was clicked
+		var color = $(cssClass).css("color").slice(4, -1).split(',');
 		for (var i = 0; i < 3; i++)
 			if (color[i] != sample[i])
 				return false;
@@ -330,19 +330,19 @@ function canvasColor(propThis, e) {
 	var x = Math.floor(e.pageX - $(propThis).offset().left);
 	var y = Math.floor(e.pageY - $(propThis).offset().top);
 	var sample = context.getImageData(x, y, 1, 1).data;
-	var colors = ["color", "outline-color", "background-color", "border-bottom-color"];
-	var mapping = ["Digit On", "Digit Off", "Background Color", "Outline Color"];
-	for (var i = 0; i < colors.length; i++)
-		if (match(colors[i])) {
+	var classes = [".digitOn", ".digitOff", ".digitBackground", ".digitOutline"];
+	//var mapping = ["Digit On", "Digit Off", "Background Color", "Outline Color"];
+	for (var i = 0; i < classes.length; i++)
+		if (match(classes[i])) {
 			//call a palette change dialogue
-			var color = $("#canvas").css(colors[i]).slice(4, -1).split(',');
+			var color = $(classes[i]).css("color").slice(4, -1).split(',');
 			$("#color_picker").val(strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
 			$("#color_picker").show();
 			$("#color_picker")[0].color.showPicker();
 			$("#color_picker").one("change", function () {//one time event
-				$("#canvas").css(colors[i], "#" + $("#color_picker").val());
-				if (colors[i] === "background-color")
-					$(".canvas").css(colors[i], "#" + $("#color_picker").val())
+				$(classes[i]).css("color", "#" + $("#color_picker").val());
+				if (classes[i] === ".digitBackground")
+					$(".canvas").css("background-color", "#" + $("#color_picker").val());//paint the surrounding div the same color as the canvas
 				$("#color_picker").hide();
 				$("#color_picker")[0].color.hidePicker();
 				reDraw();
