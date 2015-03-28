@@ -4,11 +4,18 @@ body {
 #canvas {
 	display: table;
 	margin: 0 auto;
-
+}
+.digitOn {
 	color: #403D18;
-	outline-color: #E9E8DA;
-	border-bottom-color: #000000;
-	background-color: #E2DEB1;
+}
+.digitOff {
+	color: #E9E8DA;
+}
+.digitOutline {
+	color: #000000;
+}
+.digitBackground {
+	color: #E2DEB1;
 }
 
 .canvas {
