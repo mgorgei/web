@@ -10,79 +10,53 @@
 	<body>
 		<!---->
 		<div class="canvas container-fluid">
-			<canvas id="canvas">
-				<!--<img id="broken" src="digit.png"></img>-->
+			<canvas id="canvas" tabindex=-1>
+				<img id="broken" src="images/digit.png" hidden /><!--will this preload the image or cache it on consecutive loads?-->
 			</canvas>
 			<input id="color_picker" class="color" hidden />
 		</div>
 		
-<!-- Button trigger modal 
-<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-  Launch demo modal
-</button>
-
-<!-- Modal 
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
-      </div>
-      <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div>
-  </div>
-</div>-->
-
 		<!---->
 		<form id="timer_entry" class="form-inline" action="" method="post">
 			<div class="input-group">
 				<label class="input-group-addon">HH</label>
-					<input id="timer_hours" name="timer_hours" type="number" min=0 max=23 placeholder="(0-23)" class="form-control" />
+					<input id="timer_hours" name="timer_hours" type="number" min=0 max=23 placeholder="(0-23)" class="form-control" tabindex=1 />
 			</div>
 			<div class="input-group">
 				<label class="input-group-addon">MM</label>
-					<input id="timer_minutes" name="timer_minutes" type="number" min=0 max=59 placeholder="(0-59)" class="form-control" />
+					<input id="timer_minutes" name="timer_minutes" type="number" min=0 max=59 placeholder="(0-59)" class="form-control" tabindex=2 />
 			</div>
 			<div class="input-group">
 				<label class="input-group-addon">SS</label>
-					<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="(0-59)" class="form-control" />
+					<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="(0-59)" class="form-control" tabindex=3 />
 			</div>
 				
 			<div class="form-group">
-				<button type="button" id="add_timer" class="btn btn-default">
+				<button type="button" id="add_timer" class="btn btn-default" tabindex=4>
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
 				</button>
-				<button type="button" id="refresh_timer" class="btn btn-default">
+				<button type="button" id="refresh_timer" class="btn btn-default" tabindex=5>
 					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
 				</button>
-				<button type="button" id="delete_timer" class="btn btn-default" disabled="true">
+				<button type="button" id="delete_timer" class="btn btn-default" tabindex=6 disabled="true">
 					<span class="glyphicon glyphicon-trash" aria-hidden="true">Delete</span>
 				</button>
 			</div>
 				
-			<div class="form-control">
-				<span id="radio0_span">
-					<input id="radio0" type="radio" name="radio" value=0 checked="checked" />
-					<label for="radio0" id="radio0_label">Alarm</label>
-				</span>
-			</div>
-			<div class="form-control">
-				<span id="radio1_span">
-					<input id="radio1" type="radio" name="radio" value=1 />
-					<label for="radio1" id="radio1_label">Stop Watch</label>
-				</span>
+			<div class="btn-group" data-toggle="buttons">
+				<label for="radio0" id="radio0_label" class="btn btn-default active">
+					<input id="radio0" type="radio" name="radio" value=0 checked="checked" tabindex=7 />
+					Alarm
+				</label>
+				<label for="radio1" id="radio1_label" class="btn btn-default">
+					<input id="radio1" type="radio" name="radio" value=1 tabindex=7 />
+					Stop Watch
+				</label>
 			</div>
 		</form>
 		
 		<!---->
-		<table id="timer_table" class="table table-bordered table-responsive">
+		<table id="timer_table" class="table table-bordered table-responsive" tabindex=8>
 			<thead>
 				<tr><th class="col-md-6">Time</th><th class="col-md-6">Remaining</th></tr>
 			</thead>
@@ -105,13 +79,13 @@
 				</div>
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 					<ul class="nav navbar-nav navbar-right">
-						<li><a href="mailto:mgorgei+filter@umail.iu.edu" target="_blank" class="btn btn-default" role="button" title="Emails sent to this address are given priority by my filter and will be responded to.">
+						<li><a href="mailto:mgorgei+filter@umail.iu.edu" target="_blank" class="btn btn-default" role="button" tabindex=9  data-toggle="popover" data-placement="top" data-title="Email" data-content="Emails sent to this address will be responded to promptly">
 							<img src="images/googlemail-32.png" />
 						</a></li>
-						<li style="padding-left:16px"><a href="https://www.linkedin.com/in/michaelgorgei/" target="_blank" class="btn btn-default" role="button">
+						<li style="padding-left:16px"><a href="https://www.linkedin.com/in/michaelgorgei/" target="_blank" class="btn btn-default" role="button" tabindex=10 data-toggle="popover" data-placement="top" data-title="LinkedIn" data-content="Connect with me on LinkedIn">
 							<img src="images/In-2C-28px-R.png" style="height:32px" />
 						</a></li>
-						<li style="padding-left:16px"><a href="https://www.github.com/mgorgei/" target="_blank" class="btn btn-default" role="button">
+						<li style="padding-left:16px"><a href="https://www.github.com/mgorgei/" target="_blank" class="btn btn-default" role="button" tabindex=11 data-toggle="popover" data-placement="top" data-title="GitHub" data-content="Check out my active projects">
 							<img src="images/GitHub-Mark-32px.png" />
 						</a></li>
 					</ul>
