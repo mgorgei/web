@@ -71,3 +71,7 @@ ul li:hover {
 	backgrond-color: #00FF00;
 }
 
+.popover {
+    width:300px;
+    height:100px;
+}
