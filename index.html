@@ -11,7 +11,11 @@
 		<!---->
 		<div class="canvas container-fluid">
 			<canvas id="canvas" tabindex=-1>
-				<img id="broken" src="images/digit.png" hidden /><!--will this preload the image or cache it on consecutive loads?-->
+				<img id="digit" src="images/digit.png" hidden /><!--will this preload the image or cache it on consecutive loads?-->
+				<span class="digitOn" hidden />
+				<span class="digitOff" hidden />
+				<span class="digitOutline" hidden />
+				<span class="digitBackground" hidden />
 			</canvas>
 			<input id="color_picker" class="color" hidden />
 		</div>
