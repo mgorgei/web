@@ -50,6 +50,15 @@ var timers = [];
 /*dumping ground for events
 */
 function main() {
+	//resize the labels to the largest
+	var maxLabelWidths = [];
+	$('input[type=number]', '#timer_entry').map(function() {
+		maxLabelWidths.push(parseInt($('label[for=' + $(this).prop('id') + ']', '#timer_entry').css('width')));
+	});
+	maxLabelWidth = Math.max.apply(null, maxLabelWidths);
+	$('input[type=number]', '#timer_entry').map(function() {
+		$('label[for=' + $(this).prop('id') + ']', '#timer_entry').css('width', maxLabelWidth);
+	});
 	$( document ).ready(function() {
 		$("#timer_hours").focus();
 		canvas = document.getElementById("canvas");
@@ -61,7 +70,6 @@ function main() {
 			delay: '200'
 		});
 		$("#canvas").on("onloadeddata", function() {
-			//return;//temporary
 			getTimers();
 			updateClock();
 			clockIntervalID = setInterval(function () {updateClock()}, 1000);
@@ -331,12 +339,12 @@ function canvasColor(propThis, e) {
 	var y = Math.floor(e.pageY - $(propThis).offset().top);
 	var sample = context.getImageData(x, y, 1, 1).data;
 	var classes = [".digitOn", ".digitOff", ".digitBackground", ".digitOutline"];
-	//var mapping = ["Digit On", "Digit Off", "Background Color", "Outline Color"];
 	for (var i = 0; i < classes.length; i++)
 		if (match(classes[i])) {
 			//call a palette change dialogue
 			var color = $(classes[i]).css("color").slice(4, -1).split(',');
 			$("#color_picker").val(strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
+			$("#color_picker").css("background-color", '#' + $("#color_picker").val());
 			$("#color_picker").show();
 			$("#color_picker")[0].color.showPicker();
 			$("#color_picker").one("change", function () {//one time event
