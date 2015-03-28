@@ -26,17 +26,8 @@ body {
 #timer_entry {
 	display: table;
 	margin: 0 auto;
+	padding: 2px 0;
 }
-
-#timer_warning {
-	display: none;
-	background-color: red;
-}
-
-/*#timer_table {
-	margin: 0 auto;
-	width: 904px;
-}*/
 
 #timer_table th{
 	color: #DCC6E0;/*#BE90D4;*/
