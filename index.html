@@ -22,20 +22,20 @@
 		
 		<!---->
 		<form id="timer_entry" class="form-inline" action="" method="post">
-			<div class="input-group">
+			<div class="input-group" style="padding: 0px 2px">
 				<label class="input-group-addon">HH</label>
 					<input id="timer_hours" name="timer_hours" type="number" min=0 max=23 placeholder="(0-23)" class="form-control" tabindex=1 />
 			</div>
-			<div class="input-group">
+			<div class="input-group" style="padding: 0px 2px">
 				<label class="input-group-addon">MM</label>
 					<input id="timer_minutes" name="timer_minutes" type="number" min=0 max=59 placeholder="(0-59)" class="form-control" tabindex=2 />
 			</div>
-			<div class="input-group">
+			<div class="input-group" style="padding: 0px 2px">
 				<label class="input-group-addon">SS</label>
 					<input id="timer_seconds" name="timer_seconds" type="number" min=0 max=59 placeholder="(0-59)" class="form-control" tabindex=3 />
 			</div>
 				
-			<div class="form-group">
+			<div class="form-group" style="padding: 0px 2px">
 				<button type="button" id="add_timer" class="btn btn-default" tabindex=4>
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
 				</button>
@@ -43,11 +43,11 @@
 					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
 				</button>
 				<button type="button" id="delete_timer" class="btn btn-default" tabindex=6 disabled="true">
-					<span class="glyphicon glyphicon-trash" aria-hidden="true">Delete</span>
+					<span class="glyphicon glyphicon-trash" aria-hidden="true">Remove</span>
 				</button>
 			</div>
 				
-			<div class="btn-group" data-toggle="buttons">
+			<div class="btn-group" data-toggle="buttons" style="padding-left: 2px;padding-right: 2px">
 				<label for="radio0" id="radio0_label" class="btn btn-default active">
 					<input id="radio0" type="radio" name="radio" value=0 checked="checked" tabindex=7 />
 					Alarm
@@ -76,7 +76,7 @@
 		</audio>
 		
 		<!---->
-		<nav class="navbar navbar-default navbar-fixed-bottom">
+		<nav class="navbar navbar-default navbar-fixed-bottom" style="padding: 2px 0">
 			<div class="container-fluid">
 				<div class="navbar-header">
 					<span class="navbar-brand">Contact Me</span>
@@ -89,7 +89,7 @@
 						<li style="padding-left:16px"><a href="https://www.linkedin.com/in/michaelgorgei/" target="_blank" class="btn btn-default" role="button" tabindex=10 data-toggle="popover" data-placement="top" data-title="LinkedIn" data-content="Connect with me on LinkedIn">
 							<img src="images/In-2C-28px-R.png" style="height:32px" />
 						</a></li>
-						<li style="padding-left:16px"><a href="https://www.github.com/mgorgei/" target="_blank" class="btn btn-default" role="button" tabindex=11 data-toggle="popover" data-placement="top" data-title="GitHub" data-content="Check out my active projects">
+						<li style="padding-left:16px; padding-right:8px"><a href="https://www.github.com/mgorgei/" target="_blank" class="btn btn-default" role="button" tabindex=11 data-toggle="popover" data-placement="top" data-title="GitHub" data-content="Check out my active projects">
 							<img src="images/GitHub-Mark-32px.png" />
 						</a></li>
 					</ul>
