@@ -1,6 +1,15 @@
 body {
 	padding-bottom: 50px;/*any scrolling would be hidden by the navbar without this*/
 }
+
+.spacing {
+	margin: 2px;
+}
+.buttonSpacing {
+	margin-left: 8px;
+	margin-right: 8px;
+}
+
 #canvas {
 	display: table;
 	margin: 0 auto;
@@ -26,7 +35,6 @@ body {
 #timer_entry {
 	display: table;
 	margin: 0 auto;
-	padding: 2px 0;
 }
 
 #timer_table th{
