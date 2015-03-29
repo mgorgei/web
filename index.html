@@ -8,7 +8,9 @@
 		<link rel="stylesheet" href="bs/css/bootstrap.min.css">
 	</head>
 	<body>
+		
 		<!---->
+		<input id="color_picker" class="color" style="position: absolute" hidden />
 		<div class="canvas container-fluid">
 			<canvas id="canvas" tabindex=-1>
 				<img id="digit" src="images/digit.png" hidden /><!--will this preload the image or cache it on consecutive loads?-->
@@ -19,7 +21,6 @@
 				<span class="digitOutline" hidden />
 				<span class="digitBackground" hidden />
 			</canvas>
-			<input id="color_picker" class="color" hidden />
 		</div>
 		
 		<!---->
@@ -78,7 +79,7 @@
 		</audio>
 		
 		<!---->
-		<nav class="navbar navbar-default navbar-fixed-bottom spacing">
+		<nav class="navbar navbar-default navbar-fixed-bottom" style="padding-top:2px;padding-bottom:2px">
 			<div class="container-fluid">
 				<div class="navbar-header">
 					<span class="navbar-brand">Contact Me</span>

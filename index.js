@@ -50,7 +50,7 @@ var timers = [];
 /*dumping ground for events
 */
 function main() {
-	//resize the labels to the largest
+	//resize all of the labels to the largest (for small width form)
 	var maxLabelWidths = [];
 	$('input[type=number]', '#timer_entry').map(function() {
 		maxLabelWidths.push(parseInt($('label[for=' + $(this).prop('id') + ']', '#timer_entry').css('width')));
@@ -78,8 +78,8 @@ function main() {
 			});*/
 		});
 		/*********************************************************************/
-		$("#canvas").on("click", function (e) {
-			canvasColor(this, e);
+		$("#canvas").one("click", function (event) {
+			canvasColor(event);
 		});
 		//make ':' behave as a tab key by capturing simultaneous SHIFT + ';' key presses
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
@@ -326,7 +326,7 @@ function updateClock() {
 }
 
 //determine which css class sample matches then change the color on the canvas
-function canvasColor(propThis, e) {
+function canvasColor(e) {
 	function match(cssClass) {//find the first css class color that matches the pixel that was clicked
 		var color = $(cssClass).css("color").slice(4, -1).split(',');
 		for (var i = 0; i < 3; i++)
@@ -335,8 +335,8 @@ function canvasColor(propThis, e) {
 		return true;
 	}
 	//determine where you clicked to make context-sensitive color change for css
-	var x = Math.floor(e.pageX - $(propThis).offset().left);
-	var y = Math.floor(e.pageY - $(propThis).offset().top);
+	var x = Math.floor(e.pageX - $(e.target).offset().left);
+	var y = Math.floor(e.pageY - $(e.target).offset().top);
 	var sample = context.getImageData(x, y, 1, 1).data;
 	var classes = [".digitOn", ".digitOff", ".digitBackground", ".digitOutline"];
 	for (var i = 0; i < classes.length; i++)
@@ -344,7 +344,8 @@ function canvasColor(propThis, e) {
 			//call a palette change dialogue
 			var color = $(classes[i]).css("color").slice(4, -1).split(',');
 			$("#color_picker").val(strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
-			$("#color_picker").css("background-color", '#' + $("#color_picker").val());
+			$("#color_picker")[0].color.fromString($("#color_picker").val());
+			$("#color_picker").css({left: x, top: y});
 			$("#color_picker").show();
 			$("#color_picker")[0].color.showPicker();
 			$("#color_picker").one("change", function () {//one time event
@@ -354,6 +355,9 @@ function canvasColor(propThis, e) {
 				$("#color_picker").hide();
 				$("#color_picker")[0].color.hidePicker();
 				reDraw();
+				$("#canvas").one("click", function(event) {//reactivate the event
+					canvasColor(event);
+				});
 			});
 			break;
 		}
