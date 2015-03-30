@@ -24,10 +24,13 @@ if (isset($js->timers)) {
 	if ($_SERVER["REQUEST_METHOD"] === 'GET' and isset($js->timers[0]->READ)) {
 		$sql = 'SELECT id, type, time FROM `Timer`';
 		foreach ($dbh->query($sql) as $row) {
-			echo $row['id'] . "\t";
-			echo $row['type'] . "\t";
-			echo $row['time'] . "\n";
+			$out['id'] = $row['id'];
+			$out['type'] = $row['type'];
+			$out['time'] = $row['time'];
+			$output[] = $out;//push the array on
 		}
+		$output = array('timers' => $output);
+		echo json_encode($output);
 		exit();
 	}
 	//POST CREATE //{"timers":[{"CREATE":"time"}]}
@@ -37,8 +40,8 @@ if (isset($js->timers)) {
 			$dbh->query($sql);
 			//getting the MAX id should get the latest created auto increment primary key value to pass back to the application
 			$sql = 'SELECT MAX(id) as \'m\' FROM `Timer`';
-			foreach ($dbh->query($sql) as $row)
-				echo $row['m'];
+			$out = $dbh->query($sql)->fetch()['m'];
+			echo json_encode( array('timers' => array(array('id' => $out ))));//array of array... well looks pretty wrong now, looked okay on JS side
 			exit();
 		}
 	}
@@ -53,7 +56,7 @@ if (isset($js->timers)) {
 }
 //did not recognize the JSON given
 else {
-	header("HTTP/1.1 418 I'm a teapot");
+	header("HTTP/1.1 402 Payment required");
 	exit();
 }
 //in case anything slips partially by, but does not complete via exit()
