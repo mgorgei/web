@@ -481,17 +481,13 @@ function getTimers() {
 			success: function(data) {
 				if (data) {
 					console.log("success", data);
-					var i = 0;
-					data.toString().split('\n').forEach(function (line) {
-						if (line !== "") {
-							line = line.split('\t');
-							if (line[1] == '0')
-								timers[i] = new Timer(Date.parse(today + line[2]), line[1], line[0]);
-							else
-								timers[i] = new Timer(Date.parse(today + line[2]), 2, line[0]);
-							i++;
-						}
-					});
+					var obj = JSON.parse(String(data));
+					if ($.isPlainObject(obj)) {
+						for(var i = 0; i < obj.timers.length; i++)//find a forEach way of doing this...
+							timers[i] = new Timer(Date.parse(today + obj.timers[i]['time']), obj.timers[i]['type'], obj.timers[i]['id']);
+					}
+					else
+						console.log("Data passed was not valid JSON or received no data");
 				}
 			},
 			error: function() {
@@ -533,7 +529,11 @@ function attemptNewTimer() {
 					type : "POST",
 					success: function(data) {
 						console.log("success", data);
-						timers[i].id = data;
+						var obj = JSON.parse(String(data));
+						if ($.isPlainObject(obj))
+							timers[0].id = obj.timers[0]['id'];
+						else
+							console.log("Data passed was not valid JSON or received no data");
 					},
 					error: function() {
 						console.log("error");
