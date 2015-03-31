@@ -10,7 +10,7 @@
 	<body>
 		
 		<!---->
-		<input id="color_picker" class="color" style="position: absolute" hidden />
+		<input id="color_picker" class="color {pickerFaceColor:'#EEE'}" style="position: absolute" hidden />
 		<div class="canvas container-fluid">
 			<canvas id="canvas" tabindex=-1>
 				<img id="digit" src="images/digit.png" hidden /><!--will this preload the image or cache it on consecutive loads?-->
@@ -63,14 +63,16 @@
 		</form>
 		
 		<!---->
-		<table id="timer_table" class="table table-bordered table-responsive" tabindex=8>
-			<thead>
-				<tr><th class="col-md-6">Time</th><th class="col-md-6">Remaining</th></tr>
-			</thead>
-			<tbody id="table_body">
-				<!--dynamically built-->
-			</tbody>
-		</table>
+		<div class="table-responsive">
+			<table id="timer_table" class="table table-bordered" tabindex=8>
+				<thead>
+					<tr><th style="width: 50%">Time</th><th style="width: 50%">Remaining</th></tr>
+				</thead>
+				<tbody id="table_body">
+					<!--dynamically built-->
+				</tbody>
+			</table>
+		</div>
 		
 		<audio id="audio" src="ding.mp3" type="audio/mpeg"><!--not supported in firefox-->
 			Your browser does not support the <code>audio</code> element.
@@ -86,15 +88,17 @@
 				</div>
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 					<ul class="nav navbar-nav navbar-right">
-						<li class="buttonSpacing"><a href="mailto:mgorgei+filter@umail.iu.edu" target="_blank" class="btn btn-default" role="button" tabindex=9  data-toggle="popover" data-placement="top" data-title="Email" data-content="Emails sent to this address will be responded to promptly">
-							<img src="images/googlemail-32.png" />
+						<li><a href="mailto:mgorgei+filter@umail.iu.edu" target="_blank" tabindex=9  data-toggle="popover" data-placement="top" data-title="Email" data-content="Emails sent to this address will be responded to promptly">
+							<img src="images/mail.svg" class="icon" />
 						</a></li>
-						<li class="buttonSpacing"><a href="https://www.linkedin.com/in/michaelgorgei/" target="_blank" class="btn btn-default" role="button" tabindex=10 data-toggle="popover" data-placement="top" data-title="LinkedIn" data-content="Connect with me on LinkedIn">
-							<img src="images/In-2C-28px-R.png" style="height:32px" />
+						<li><a href="https://www.linkedin.com/in/michaelgorgei/" target="_blank" tabindex=10 data-toggle="popover" data-placement="top" data-title="LinkedIn" data-content="Connect with me on LinkedIn">
+							<img src="images/linkedin.svg" class="icon" />
 						</a></li>
-						<li class="buttonSpacing"><a href="https://www.github.com/mgorgei/" target="_blank" class="btn btn-default" role="button" tabindex=11 data-toggle="popover" data-placement="top" data-title="GitHub" data-content="Check out my active projects">
-							<img src="images/GitHub-Mark-32px.png" />
+						<li><a href="https://www.github.com/mgorgei/" target="_blank" tabindex=11 data-toggle="popover" data-placement="top" data-title="GitHub" data-content="Check out my active projects">
+							<img src="images/github.svg" class="icon" />
 						</a></li>
+						<!--attribution: Dreamstale via Creative Commons license 
+						http://www.dreamstale.com/free-download-72-vector-social-media-icons/-->
 					</ul>
 				</div>
 			</div>
