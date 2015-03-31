@@ -1,6 +1,7 @@
 //var newObject = jQuery.extend(true, {}, oldObject);//jQuery deep copy
 var digits = [];//imageData for digits 0-9 and the empty digit(pos 10)
-var lastDrawn = [11,12,13,14,15,16];//index represents position of the last drawn digit (value)
+var resetDrawn = [11,12,13,14,15,16];
+var lastDrawn = jQuery.extend(true, {}, resetDrawn);//index represents position of the last drawn digit (value)
 var twenty_four_hour_clock = false;
 var lengthOfSemiColon = 32;//cannot be measured in the image, so needs to be specified
 var timeAlarmExpires = 600;//in seconds
@@ -149,7 +150,7 @@ function drawDigits() {
 //change digits with the new color and draw every digit again
 function reDraw() {
 	drawDigits();
-	lastDrawn = [11,12,13,14,15,16];
+	lastDrawn = jQuery.extend(true, {}, resetDrawn);
 }
 
 /*identify specific regions of an image to be colored
@@ -343,13 +344,13 @@ function canvasColor(e) {
 		if (match(classes[i])) {
 			//call a palette change dialogue
 			var color = $(classes[i]).css("color").slice(4, -1).split(',');
-			$("#color_picker").val(strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
+			$("#color_picker").val('#' + strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
 			$("#color_picker")[0].color.fromString($("#color_picker").val());
 			$("#color_picker").css({left: x, top: y});
 			$("#color_picker").show();
 			$("#color_picker")[0].color.showPicker();
 			$("#color_picker").one("change", function () {//one time event
-				$(classes[i]).css("color", "#" + $("#color_picker").val());
+				$(classes[i]).css("color", '#' + $("#color_picker").val());
 				if (classes[i] === ".digitBackground")
 					$(".canvas").css("background-color", "#" + $("#color_picker").val());//paint the surrounding div the same color as the canvas
 				$("#color_picker").hide();
@@ -443,7 +444,7 @@ function buildTimerDOM() {
 //add recent timer to the DOM
 function addTimerDOM(i) {
 	var type = ['Alarm', 'Stop Watch'];
-	$('#table_body').append("<tr><td class=\"col-md-6\">" + timers[i].time.toLocaleTimeString() + "</td><td class=\"col-md-6\">" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
+	$('#table_body').append("<tr><td>" + timers[i].time.toLocaleTimeString() + "</td><td>" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
 }
 
 //enables delete_timer button and add a class to visually indicate what timer is selected
@@ -483,11 +484,11 @@ function getTimers() {
 					console.log("success", data);
 					var obj = JSON.parse(String(data));
 					if ($.isPlainObject(obj)) {
-						for(var i = 0; i < obj.timers.length; i++)//find a forEach way of doing this...
+						for(var i = 0; i < obj.timers.length; i++)
 							timers[i] = new Timer(Date.parse(today + obj.timers[i]['time']), obj.timers[i]['type'], obj.timers[i]['id']);
 					}
 					else
-						console.log("Data passed was not valid JSON or received no data");
+						console.log("Data passed was not valid JSON");
 				}
 			},
 			error: function() {
@@ -553,40 +554,30 @@ function attemptNewTimer() {
 function deleteTimer() {
 	var index = $(".timer_table_selected").index();
 	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
-		console.log(index);
-		if (timers[index].id >= 0) {//don't delete if the id is negative (indicates a local timer not synced with server)
-			if (!testLocal) {
-				var obj = JSON.parse('{"timers":[{"DELETE":"id"}]}');
-				obj.timers[0]['DELETE'] = timers[index].id;
-				$.ajax({
-					url : window.location.pathname + "ajax.php",
-					data : escape(JSON.stringify(obj)),
-					type : "DELETE",
-					success: function(data) {
-						console.log("success", data);
-					},
-					error: function() {
-						console.log("error");
-					},
-					complete: function() {
-						console.log("complete");
-						gg = this;
-					}
-				});
-			}
+		if (!testLocal) {
+			var obj = JSON.parse('{"timers":[{"DELETE":"id"}]}');
+			obj.timers[0]['DELETE'] = timers[index].id;
+			$.ajax({
+				url : window.location.pathname + "ajax.php",
+				data : escape(JSON.stringify(obj)),
+				type : "DELETE",
+				success: function(data) {
+					console.log("success", data);
+				},
+				error: function() {
+					console.log("error");
+				},
+				complete: function() {
+					console.log("complete");
+					gg = this;
+				}
+			});
 		}
 		$("#delete_timer").prop('disabled', true);
-		$(".timer_table_selected").fadeOut(1000, function() {
-			//$("").prop("height");
-			/*$("tr").animate(//move up everything beneath this index by the height of the tr
-			{
-				top: "-=38px"
-			}, 10000, function () {*/
-			
-				timers.splice(index, 1);//delete selected index
-				$('#table_body tr')[index].remove();
-			});
-		//});
+		$(".timer_table_selected").fadeOut(200, function() {
+			timers.splice(index, 1);//delete selected index
+			$('#table_body tr')[index].remove();
+		});
 	}
 	else
 		alert("Nothing selected!");
