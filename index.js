@@ -59,27 +59,26 @@ function main() {
 	$('input[type=number]', '#timer_entry').map(function() {
 		$('label[for=' + $(this).prop('id') + ']', '#timer_entry').css('width', maxLabelWidth);
 	});
+	//document is ready
 	$( document ).ready(function() {
 		$("#timer_hours").focus();
 		canvas = document.getElementById("canvas");
 		context = canvas.getContext('2d');
 		drawDigits();
+		//initialize all popovers (necessary)
 		$('[data-toggle="popover"]').popover({
 			trigger: 'hover',
 			delay: '200'
 		});
+		//when the base_image is loaded, can draw the clock
 		$("#canvas").on("onloadeddata", function() {
 			getTimers();
 			updateClock();
-			clockIntervalID = setInterval(function () {updateClock()}, 1000);
-			/*$(window).on("resize", function () {
-				console.log($(window).width(), $(window).height());
-			});*/
+			clockIntervalID = setInterval(updateClock, 1000);
 		});
 		/*********************************************************************/
-		$("#canvas").one("click", function (event) {
-			canvasColor(event);
-		});
+		//one time event for easier event handling (canvas should not use multiple color pickers)
+		$("#canvas").one("click", canvasColor);
 		//make ':' behave as a tab key by capturing simultaneous SHIFT + ';' key presses
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
 			if (event.which == 16)
@@ -93,13 +92,12 @@ function main() {
 			if (event.which == 16)
 				shiftKey = false;
 		});
+		//inline form events
 		$("#timer_entry").on("input", validateInput);
 		$("#add_timer").on("click", attemptNewTimer);
 		$("#refresh_timer").on("click", getTimers);
 		$("#delete_timer").on("click", deleteTimer);
-		$("#table_body").on("click", function( event ) {
-			selectTimer(event);
-		});
+		$("#table_body").on("click", selectTimer);
 	});
 } main();//run this function as soon as possible
 
@@ -330,6 +328,23 @@ function canvasColor(e) {
 				return false;
 		return true;
 	}
+	function showPicker(cssClass) {//call a palette change dialogue
+		var color = $(cssClass).css("color").slice(4, -1).split(',');
+		$("#color_picker").val('#' + strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
+		$("#color_picker")[0].color.fromString($("#color_picker").val());
+		$("#color_picker").css({left: x, top: y});
+		$("#color_picker").show();
+		$("#color_picker")[0].color.showPicker();
+	}
+	function hidePicker(event) {//callback when the picker has a new value, hide the picker and update the canvas
+		$(event.data.cssClass).css("color", '#' + $("#color_picker").val());
+		if (event.data.cssClass === ".digitBackground")//paint the surrounding div the same background-color as the canvas
+			$(".canvas").css("background-color", "#" + $("#color_picker").val());
+		$("#color_picker").hide();
+		$("#color_picker")[0].color.hidePicker();
+		reDraw();
+		$("#canvas").one("click", canvasColor);//reactivate the click event
+	}
 	//determine where you clicked to make context-sensitive color change for css
 	var x = Math.floor(e.pageX - $(e.target).offset().left);
 	var y = Math.floor(e.pageY - $(e.target).offset().top);
@@ -337,24 +352,8 @@ function canvasColor(e) {
 	var classes = [".digitOn", ".digitOff", ".digitBackground", ".digitOutline"];
 	for (var i = 0; i < classes.length; i++)
 		if (match(classes[i])) {
-			//call a palette change dialogue
-			var color = $(classes[i]).css("color").slice(4, -1).split(',');
-			$("#color_picker").val('#' + strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
-			$("#color_picker")[0].color.fromString($("#color_picker").val());
-			$("#color_picker").css({left: x, top: y});
-			$("#color_picker").show();
-			$("#color_picker")[0].color.showPicker();
-			$("#color_picker").one("change", function () {//one time event
-				$(classes[i]).css("color", '#' + $("#color_picker").val());
-				if (classes[i] === ".digitBackground")
-					$(".canvas").css("background-color", "#" + $("#color_picker").val());//paint the surrounding div the same color as the canvas
-				$("#color_picker").hide();
-				$("#color_picker")[0].color.hidePicker();
-				reDraw();
-				$("#canvas").one("click", function(event) {//reactivate the event
-					canvasColor(event);
-				});
-			});
+			showPicker(classes[i]);
+			$("#color_picker").one("change", {cssClass:classes[i]}, hidePicker);
 			break;
 		}
 }
@@ -392,7 +391,7 @@ function validateInput() {
 	var HH = getValue("#timer_hours");
 	var MM = getValue("#timer_minutes");
 	var SS = getValue("#timer_seconds");
-	//check who has focus here to validate and move onto another input automatically
+	//check who has focus here to validate and move onto another input based on the range or procTab
 	if ($(document.activeElement).prop("id") == "timer_hours") {
 		var tmp = HH.toString().substr(-2);
 		if ((tmp > 2 && tmp < 10) || (tmp.length == 2) || procTab)
@@ -414,6 +413,7 @@ function validateInput() {
 		procTab=false;
 		lastSS = tmp;
 	}
+	//pass user input into new Date object and return the string if it survives
 	var today = new Date();
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
 		('0' + HH.toString()).substr(-2) + ':' + ('0' + MM.toString()).substr(-2) + ':' + ('0' + SS.toString()).substr(-2);
@@ -568,9 +568,10 @@ function deleteTimer() {
 				}
 			});
 		}
+		//remove the affected table row by animation
 		$("#delete_timer").prop('disabled', true);
 		$(".timer_table_selected").fadeOut(200, function() {
-			timers.splice(index, 1);//delete selected index
+			timers.splice(index, 1);
 			$('#table_body tr')[index].remove();
 		});
 	}
