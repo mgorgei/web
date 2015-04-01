@@ -1,7 +1,6 @@
-//var newObject = jQuery.extend(true, {}, oldObject);//jQuery deep copy
 var digits = [];//imageData for digits 0-9 and the empty digit(pos 10)
 var resetDrawn = [11,12,13,14,15,16];
-var lastDrawn = jQuery.extend(true, {}, resetDrawn);//index represents position of the last drawn digit (value)
+var lastDrawn = jQuery.extend(true, {}, resetDrawn);//index represents position of the last drawn digit (value)//jQuery deep copy
 var twenty_four_hour_clock = false;
 var lengthOfSemiColon = 32;//cannot be measured in the image, so needs to be specified
 var timeAlarmExpires = 600;//in seconds
@@ -66,7 +65,6 @@ function main() {
 		context = canvas.getContext('2d');
 		drawDigits();
 		$('[data-toggle="popover"]').popover({
-			/*container: 'body',*/
 			trigger: 'hover',
 			delay: '200'
 		});
@@ -119,7 +117,7 @@ function drawDigits() {
 	base_image.onload = function() {
 		canvas.width = base_image.width * 6 - lengthOfSemiColon;
 		canvas.height = base_image.height * 1;
-		context.drawImage(base_image, 0, 0);
+		context.drawImage(base_image, 0, 0);//draw the coded image on the canvas to push the data onto an array
 		var colorDigit = $(".digitOn").css("color").slice(4, -1).split(',');
 		var colorDigitOff = $(".digitOff").css("color").slice(4, -1).split(',');
 		var colorBackground = $(".digitBackground").css("color").slice(4, -1).split(',');
@@ -127,6 +125,7 @@ function drawDigits() {
 		var imageData = context.getImageData(0, 0, base_image.width, base_image.height);
 		for (var j = 0; j < 11; j++) {
 			digits[j] = context.createImageData(base_image.width, base_image.height);
+			//fill each pixel with a matching css color
 			for (var i = 0; i < imageData.data.length; i+=4) {
 				var result = identifyPixel(imageData.data[i], imageData.data[i + 1], imageData.data[i + 2], j);
 				if (result == colorEnum.digiton)
@@ -266,12 +265,8 @@ function updateClock() {
 	var seconds = d.getSeconds();
 	var minutes = d.getMinutes();
 	var hours = d.getHours();
-	var AMPM = false;
-	if (!twenty_four_hour_clock)//this block is probably already handled by Date()'s localization
-		if (hours > 12) {
-			hours = hours - 12;
-			AMPM = true;
-		}
+	if (hours > 12)//cannot find a non-convoluted way of detecting local time (12 or 24 hour clock)
+		hours = hours - 12;
 	if (hours == 0) {
 		if (twenty_four_hour_clock)
 			hours = 24;
