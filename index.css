@@ -36,6 +36,7 @@ body {
 #timer_table th{
 	color: #DCC6E0;/*#BE90D4;*/
 	background-color: #674172;/*#663399;*/
+	width: 50%;
 }
 
 #timer_table tr:nth-child(odd){
