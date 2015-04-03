@@ -6,6 +6,8 @@ var lengthOfSemiColon = 32;//cannot be measured in the image, so needs to be spe
 var timeAlarmExpires = 600;//in seconds
 var alarmDelay = 10;//time in seconds from start of alarm sound
 var alarmLastPlayed = 0;//ms since 1/1/1970
+var alarmTriggering = false;//is an alarm being triggered right now
+var alarmDraw = false;//draw empty digits if true
 var testLocal = location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
 var shiftKey = false;//detect when shift is pressed within the input HH:MM:SS fields
 var procTab = false;//save pressing ':' in keydown/keyup event for use in oninput event since type=number doesn't give non-number characters
@@ -61,7 +63,7 @@ function main() {
 	});
 	//document is ready
 	$( document ).ready(function() {
-		$("#timer_hours").focus();
+		getTimers();
 		canvas = document.getElementById("canvas");
 		context = canvas.getContext('2d');
 		drawDigits();
@@ -70,11 +72,11 @@ function main() {
 			trigger: 'hover',
 			delay: '200'
 		});
+		$("#timer_hours").focus();
 		//when the base_image is loaded, can draw the clock
 		$("#canvas").on("onloadeddata", function() {
-			getTimers();
 			updateClock();
-			clockIntervalID = setInterval(updateClock, 1000);
+			clockIntervalID = setInterval(updateClock, 500);
 		});
 		/*********************************************************************/
 		//one time event for easier event handling (canvas should not use multiple color pickers)
@@ -115,7 +117,8 @@ function drawDigits() {
 	base_image.onload = function() {
 		canvas.width = base_image.width * 6 - lengthOfSemiColon;
 		canvas.height = base_image.height * 1;
-		context.drawImage(base_image, 0, 0);//draw the coded image on the canvas to push the data onto an array
+		//draw the coded image on the canvas to push the data onto an array
+		context.drawImage(base_image, 0, 0);
 		var colorDigit = $(".digitOn").css("color").slice(4, -1).split(',');
 		var colorDigitOff = $(".digitOff").css("color").slice(4, -1).split(',');
 		var colorBackground = $(".digitBackground").css("color").slice(4, -1).split(',');
@@ -141,7 +144,7 @@ function drawDigits() {
 		$("#canvas").triggerHandler("onloadeddata");
 	}
 	//base_image.crossOrigin = "use-credentials";//'anonymous';
-	base_image.src = 'images/digit.png'; //src needs to be specified after onload event	
+	base_image.src = 'images/digit.png'; //src needs to be specified after onload event
 }
 
 //change digits with the new color and draw every digit again
@@ -277,43 +280,61 @@ function updateClock() {
 	var monthText = getMonthText(month);
 	var fillColor = $(".digitBackground").css("color").slice(4, -1).split(',');
 	context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
-	//draw only digits that have changed
-	if (hours > 9) {
-		if (lastDrawn[0] != Math.floor(hours / 10)) {
-			lastDrawn[0] = Math.floor(hours / 10);
-			context.putImageData(digits[lastDrawn[0]], 0, 0);
-			context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
-		}
-	}
-	else {
-		if (lastDrawn[0] != 10) {
-			lastDrawn[0] = 10;
-			context.putImageData(digits[lastDrawn[0]], 0, 0);
-			context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
-		}
-	}
-	if (lastDrawn[1] != hours % 10) {
-		lastDrawn[1] = hours % 10;
-		context.putImageData(digits[lastDrawn[1]], digits[0].width * 1, 0);
-	}
-	if (lastDrawn[2] != Math.floor(minutes / 10)) {
-		lastDrawn[2] = Math.floor(minutes / 10);
-		context.putImageData(digits[lastDrawn[2]], digits[0].width * 2, 0);
+	//alternate between showing empty digits during an alarm and the real time
+	if (alarmTriggering && alarmDraw) {
+		context.putImageData(digits[10], 0, 0);
+		context.putImageData(digits[10], digits[0].width * 1, 0);
+		context.putImageData(digits[10], digits[0].width * 2, 0);
+		context.putImageData(digits[10], digits[0].width * 3, 0);
+		context.putImageData(digits[10], digits[0].width * 4, 0);
+		context.putImageData(digits[10], digits[0].width * 5, 0);
+		context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
 		context.fillRect(digits[0].width * 3 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+		context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+		lastDrawn = jQuery.extend(true, {}, [10,10,10,10,10,10]);
 	}
-	if (lastDrawn[3] != minutes % 10) {
-		lastDrawn[3] = minutes % 10;
-		context.putImageData(digits[lastDrawn[3]], digits[0].width * 3, 0);
-	}
-	if (true) { //remove seconds conditionally if screen width on canvas won't scale down nicely
-		if (lastDrawn[4] != Math.floor(seconds / 10)) {
-			lastDrawn[4] = Math.floor(seconds / 10)
-			context.putImageData(digits[lastDrawn[4]], digits[0].width * 4, 0);
-			context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+	//draw only digits that have changed
+	else {
+		//hours
+		if (hours > 9) {
+			if (lastDrawn[0] != Math.floor(hours / 10)) {
+				lastDrawn[0] = Math.floor(hours / 10);
+				context.putImageData(digits[lastDrawn[0]], 0, 0);
+				context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+			}
 		}
-		if (lastDrawn[5] != seconds % 10) {
-			lastDrawn[5] = seconds % 10;
-			context.putImageData(digits[lastDrawn[5]], digits[0].width * 5, 0);//the semi-colon would be truncated by the max length of the canvas
+		else {
+			if (lastDrawn[0] != 10) {
+				lastDrawn[0] = 10;
+				context.putImageData(digits[lastDrawn[0]], 0, 0);
+				context.fillRect(digits[0].width - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+			}
+		}
+		if (lastDrawn[1] != hours % 10) {
+			lastDrawn[1] = hours % 10;
+			context.putImageData(digits[lastDrawn[1]], digits[0].width * 1, 0);
+		}
+		//minutes
+		if (lastDrawn[2] != Math.floor(minutes / 10)) {
+			lastDrawn[2] = Math.floor(minutes / 10);
+			context.putImageData(digits[lastDrawn[2]], digits[0].width * 2, 0);
+			context.fillRect(digits[0].width * 3 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+		}
+		if (lastDrawn[3] != minutes % 10) {
+			lastDrawn[3] = minutes % 10;
+			context.putImageData(digits[lastDrawn[3]], digits[0].width * 3, 0);
+		}
+		//seconds
+		if (true) { //remove seconds conditionally if screen width on canvas won't scale down nicely
+			if (lastDrawn[4] != Math.floor(seconds / 10)) {
+				lastDrawn[4] = Math.floor(seconds / 10)
+				context.putImageData(digits[lastDrawn[4]], digits[0].width * 4, 0);
+				context.fillRect(digits[0].width * 5 - lengthOfSemiColon, 0, lengthOfSemiColon, digits[0].height);
+			}
+			if (lastDrawn[5] != seconds % 10) {
+				lastDrawn[5] = seconds % 10;
+				context.putImageData(digits[lastDrawn[5]], digits[0].width * 5, 0);//the semi-colon would be truncated by the max length of the canvas
+			}
 		}
 	}
 	checkTimers();
@@ -443,7 +464,7 @@ function addTimerDOM(i) {
 }
 
 //enables delete_timer button and add a class to visually indicate what timer is selected
-function selectTimer(event/*<-why is that not required? event is global or somehow inherited? how does that operate with multiple active events?*/) {
+function selectTimer(event) {
 	var target = $(event.target);
 	var hasClass = target.parent().hasClass("timer_table_selected");//assist in deselecting the table
 	$("#table_body > *").removeClass("timer_table_selected");//transition out with animation?
@@ -493,7 +514,6 @@ function getTimers() {
 			complete: function() {
 				buildTimerDOM();
 				console.log("complete");
-				gg = this;
 			}
 		});
 	}
@@ -518,7 +538,6 @@ function attemptNewTimer() {
 				var t = timers[i].time.toTimeString();
 				var obj = JSON.parse('{"timers":[{"CREATE":"time"}]}');
 				obj.timers[0]['CREATE'] = t.substr(0, t.indexOf(' '));
-				gg = obj;
 				$.ajax({
 					url : window.location.pathname + "ajax.php",
 					data : escape(JSON.stringify(obj)),
@@ -536,7 +555,6 @@ function attemptNewTimer() {
 					},
 					complete: function() {
 						console.log("complete");
-						gg = this;
 					}
 				});
 			}
@@ -564,7 +582,6 @@ function deleteTimer() {
 				},
 				complete: function() {
 					console.log("complete");
-					gg = this;
 				}
 			});
 		}
@@ -582,7 +599,9 @@ function deleteTimer() {
 //play audio for (recently) expired timers; display time remaining on active timers
 function checkTimers() {
 	for (var i = 0; i < timers.length; i++) {
-		if (Date.now() > timers[i].time.getTime() && Date.now() < timers[i].time.getTime() + timeAlarmExpires * 1000)
+		if (Date.now() > timers[i].time.getTime() && Date.now() < timers[i].time.getTime() + timeAlarmExpires * 1000) {
+			alarmTriggering = true;
+			alarmDraw = !alarmDraw;
 			if (Date.now() > alarmLastPlayed + alarmDelay * 1000) {
 				//show which tr element is playing this sound
 				var tmp = '<span name="temp" class="glyphicon glyphicon-volume-up" aria-hidden="true" style="padding-left:8px"></span>';
@@ -591,6 +610,7 @@ function checkTimers() {
 				alarmLastPlayed = Date.now();
 				$("#audio")[0].play();
 			}
+		}
 		var td = $("#table_body > tr")[i].children;
 		td[1].innerText = timeRemaining(timers[i].time.getTime());
 	}
