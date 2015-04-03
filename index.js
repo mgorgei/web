@@ -76,6 +76,7 @@ function main() {
 		//when the base_image is loaded, can draw the clock
 		$("#canvas").on("onloadeddata", function() {
 			updateClock();
+			clearInterval(clockIntervalID);
 			clockIntervalID = setInterval(updateClock, 500);
 		});
 		/*********************************************************************/
