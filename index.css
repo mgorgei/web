@@ -6,6 +6,14 @@ body {
 	margin: 2px;
 }
 
+.act {
+	border-bottom: solid 2px;
+	border-top: solid 2px;
+	border-color: #0000FF;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
 #canvas {
 	display: table;
 	margin: 0 auto;
@@ -66,6 +74,26 @@ body {
 .icon {
 	width: 48px;
 	height: 48px;
+}
+
+/*override the inline svg style with the !important keyword*/
+circle {
+	fill: #58595B;
+}
+
+#mail circle.hover {
+	fill: #C40C0C;
+}
+
+#linkedin g g g circle {
+	fill: #FFFFFF;
+}
+#linkedin circle.hover {
+	fill: #0173B2;
+}
+
+#github circle.hover {
+	fill: #171516;
 }
 
 .popover {
