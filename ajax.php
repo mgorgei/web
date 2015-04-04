@@ -1,5 +1,9 @@
 <?php
 include 'pwds.php';
+/*connect to the MySQL database on the server.  Respond based on the post 
+  request type, the first object's name, and the first key of the expected JSON
+  object.  
+*/
 try {
 	$dbh = new PDO($dsn, $username, $password, $options);
 	$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -36,6 +40,7 @@ if (isset($js->timers)) {
 	//POST CREATE //{"timers":[{"CREATE":"time"}]}
 	elseif ($_SERVER["REQUEST_METHOD"] === 'POST' and isset($js->timers[0]->CREATE)) {
 		if (is_numeric(str_replace(':', '', $js->timers[0]->CREATE))) {
+			//should check if the time is valid instead of just numeric!!!
 			$sql = 'INSERT INTO `Timer` (`time`, `type`) VALUES (\'' . $js->timers[0]->CREATE . '\', \'' . 0 . '\');';
 			$dbh->query($sql);
 			//getting the MAX id should get the latest created auto increment primary key value to pass back to the application
