@@ -96,11 +96,18 @@ function main() {
 				shiftKey = false;
 		});
 		//inline form events
+		/*$("#timer_entry div.input-group, #timer_entry .form-group button, #timer_entry .btn-group label").hover(function() {
+			$(this).toggleClass("act");
+		});*/
 		$("#timer_entry").on("input", validateInput);
 		$("#add_timer").on("click", attemptNewTimer);
 		$("#refresh_timer").on("click", getTimers);
 		$("#delete_timer").on("click", deleteTimer);
 		$("#table_body").on("click", selectTimer);
+		//bottom bar events
+		//$(".icon").inlineSVG();
+		svgInline(".icon");
+		$("#botbar li").hover(hoverSVG);//change all .icon images into inline svg to be modifiable
 	});
 } main();//run this function as soon as possible
 
@@ -635,4 +642,52 @@ function timeRemaining(time) {
 
 function strToHex(str) {
 	return ('0' + parseInt(str).toString(16)).substr(-2).toUpperCase();
+}
+
+//
+function hoverSVG(event) {
+	//find the child to this li
+	var child = $(this).children().children().eq(0).prop('id');
+	var elem = $(this).find('svg g circle');
+	elem.css('fill','')//erase so that it can be overridden
+	if(event.type === 'mouseleave')
+		elem.css('fill','#58595B');
+	else {
+		if (child === 'mail')
+			elem.css('fill','#C40C0C');
+		else if (child === 'linkedin')
+			elem.css('fill','#0173B2');
+		else if (child === 'github')
+			elem.css('fill','#171516');
+	}
+	if (child === 'linkedin')
+		$(this).find('svg g g g circle').css('fill','#FFFFFF');//linkedin icon has a nested element that behaves differently
+}
+
+/*attribution: https://snippetlib.com/jquery/replace_all_svg_images_with_inline_svg */
+/*  Replace all SVG images with inline SVG */
+function svgInline(jq) {
+	$(jq).each(function(){
+		var $img = $(this);
+		var imgID = $img.attr('id');
+		var imgClass = $img.attr('class');
+		var imgURL = $img.attr('src');
+
+		$.get(imgURL, function(data) {
+			// Get the SVG tag, ignore the rest
+			var $svg = $(data).find('svg');
+			// Add replaced image's ID to the new SVG
+			if (typeof imgID !== 'undefined') {
+				$svg = $svg.attr('id', imgID);
+			}
+			// Add replaced image's classes to the new SVG
+			if (typeof imgClass !== 'undefined') {
+				$svg = $svg.attr('class', imgClass+' replaced-svg');
+			}
+			// Remove any invalid XML tags as per http://validator.w3.org
+			$svg = $svg.removeAttr('xmlns:a');
+			// Replace image with new SVG
+			$img.replaceWith($svg);
+		});
+	});
 }
