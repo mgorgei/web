@@ -4,8 +4,8 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>New Tab()</title>
-		<link rel="stylesheet" href="index.css">
 		<link rel="stylesheet" href="bs/css/bootstrap.min.css">
+		<link rel="stylesheet" href="index.css">
 	</head>
 	<body>
 		
@@ -15,7 +15,7 @@
 			<canvas id="canvas" tabindex=-1>
 				<img id="digit" src="images/digit.png" hidden /><!--will this preload the image or cache it on consecutive loads?-->
 				<!--Attribution: default palette and base image taken from 
-				https://www.codeeval.com/open_challenges/179/-->
+				https://www.codeeval.com/open_challenges/179/ -->
 				<span class="digitOn" hidden />
 				<span class="digitOff" hidden />
 				<span class="digitOutline" hidden />
@@ -77,28 +77,28 @@
 		<audio id="audio" src="ding.mp3" type="audio/mpeg"><!--not supported in firefox-->
 			Your browser does not support the <code>audio</code> element.
 			<!--attribution: corsica_s / Tim Kahn on freesound.org via Creative Commons license 
-			https://www.freesound.org/people/Corsica_S/sounds/91926/-->
+			https://www.freesound.org/people/Corsica_S/sounds/91926/ -->
 		</audio>
 		
 		<!---->
-		<nav class="navbar navbar-default navbar-fixed-bottom" style="padding-top:2px;padding-bottom:2px">
+		<nav class="navbar navbar-default navbar-fixed-bottom">
 			<div class="container-fluid">
 				<div class="navbar-header">
 					<span class="navbar-brand">Contact Me</span>
 				</div>
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-					<ul class="nav navbar-nav navbar-right">
+					<ul id="botbar" class="nav navbar-nav navbar-right">
 						<li><a href="mailto:mgorgei+filter@umail.iu.edu" target="_blank" tabindex=9  data-toggle="popover" data-placement="top" data-title="Email" data-content="Emails sent to this address will be responded to promptly">
-							<img src="images/mail.svg" class="icon" />
+							<img src="images/mail.svg" class="icon" id="mail" />
 						</a></li>
 						<li><a href="https://www.linkedin.com/in/michaelgorgei/" target="_blank" tabindex=10 data-toggle="popover" data-placement="top" data-title="LinkedIn" data-content="Connect with me on LinkedIn">
-							<img src="images/linkedin.svg" class="icon" />
+							<img src="images/linkedin.svg" class="icon" id="linkedin" />
 						</a></li>
 						<li><a href="https://www.github.com/mgorgei/" target="_blank" tabindex=11 data-toggle="popover" data-placement="top" data-title="GitHub" data-content="Check out my active projects">
-							<img src="images/github.svg" class="icon" />
+							<img src="images/github.svg" class="icon" id="github" />
 						</a></li>
 						<!--attribution: Dreamstale via Creative Commons license 
-						http://www.dreamstale.com/free-download-72-vector-social-media-icons/-->
+						http://www.dreamstale.com/free-download-72-vector-social-media-icons/ -->
 					</ul>
 				</div>
 			</div>
