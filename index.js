@@ -366,11 +366,11 @@ function canvasColor(e) {
 	}
 	function hidePicker(event) {//callback when the picker has a new value, hide the picker and update the canvas
 		$(event.data.cssClass).css("color", '#' + $("#color_picker").val());
-		if (event.data.cssClass === ".digitBackground")//paint the surrounding div the same background-color as the canvas
-			$(".canvas").css("background-color", "#" + $("#color_picker").val());
 		$("#color_picker").hide();
 		$("#color_picker")[0].color.hidePicker();
 		reDraw();
+		if (event.data.cssClass === ".digitBackground")//paint the surrounding div the same background-color as the canvas
+			$(".canvas").css("background-color", "#" + $("#color_picker").val());
 		$("#canvas").one("click", canvasColor);//reactivate the click event
 	}
 	//determine where you clicked to make context-sensitive color change for css
@@ -647,7 +647,7 @@ function strToHex(str) {
   fill color via CSS.  The query is highly specific to the structure and 
   uniformity of the SVG files.
 */
-function hoverSVG(event) {//$("#botbar li").find('svg').children('g').children('g').children('circle')
+function hoverSVG(event) {
 	//find the child to this li
 	var child = $(this).prop('id');
 	var elem = $(this).find('svg').children('g').children('g').children('circle');
