@@ -287,6 +287,7 @@ function updateClock() {
 	var monthText = getMonthText(month);
 	var fillColor = $(".digitBackground").css("color").slice(4, -1).split(',');
 	context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
+	var divChange = lastDrawn[0] === resetDrawn[0];
 	//alternate between showing empty digits during an alarm and the real time
 	if (alarmTriggering && alarmDraw) {
 		context.putImageData(digits[10], 0, 0);
@@ -344,6 +345,10 @@ function updateClock() {
 			}
 		}
 	}
+	if (divChange) {//paint the surrounding div the same background-color as the canvas
+		var color = $(".digitBackground").css("color").slice(4, -1).split(',');
+		$(".canvas").css("background-color", "#" + strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
+	}
 	checkTimers();
 }
 
@@ -369,8 +374,6 @@ function canvasColor(e) {
 		$("#color_picker").hide();
 		$("#color_picker")[0].color.hidePicker();
 		reDraw();
-		if (event.data.cssClass === ".digitBackground")//paint the surrounding div the same background-color as the canvas
-			$(".canvas").css("background-color", "#" + $("#color_picker").val());
 		$("#canvas").one("click", canvasColor);//reactivate the click event
 	}
 	//determine where you clicked to make context-sensitive color change for css
