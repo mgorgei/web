@@ -75,28 +75,30 @@ body {
 	width: 48px;
 	height: 48px;
 }
-
-/*override the inline svg style with the !important keyword*/
 circle {
 	fill: #58595B;
 }
-
-#mail circle.hover {
+circle.mail {
 	fill: #C40C0C;
 }
-
-#linkedin g g g circle {
-	fill: #FFFFFF;
-}
-#linkedin circle.hover {
+circle.linkedin {
 	fill: #0173B2;
 }
-
-#github circle.hover {
+circle.linkedinNested {
+	fill: #FFFFFF;
+}
+circle.github {
 	fill: #171516;
 }
 
 .popover {
-    width:300px;
-    height:100px;
+    width: 300px;
+    height: 100px;
+}
+
+.experiment {
+	digitOn: #403D18;
+	digitOff: #E9E8DA;
+	digitOutline: #000000;
+	digitBackground: #E2DEB1;
 }
