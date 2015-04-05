@@ -105,9 +105,8 @@ function main() {
 		$("#delete_timer").on("click", deleteTimer);
 		$("#table_body").on("click", selectTimer);
 		//bottom bar events
-		//$(".icon").inlineSVG();
-		svgInline(".icon");
-		$("#botbar li").hover(hoverSVG);//change all .icon images into inline svg to be modifiable
+		svgInline(".icon");//change all .icon images into inline svg to be modifiable
+		$("#botbar li").hover(hoverSVG);
 	});
 } main();//run this function as soon as possible
 
@@ -644,28 +643,24 @@ function strToHex(str) {
 	return ('0' + parseInt(str).toString(16)).substr(-2).toUpperCase();
 }
 
-//
-function hoverSVG(event) {
+/*find the child to the li for identification, change the inline SVG element's
+  fill color via CSS.  The query is highly specific to the structure and 
+  uniformity of the SVG files.
+*/
+function hoverSVG(event) {//$("#botbar li").find('svg').children('g').children('g').children('circle')
 	//find the child to this li
-	var child = $(this).children().children().eq(0).prop('id');
-	var elem = $(this).find('svg g circle');
+	var child = $(this).prop('id');
+	var elem = $(this).find('svg').children('g').children('g').children('circle');
 	elem.css('fill','')//erase so that it can be overridden
-	if(event.type === 'mouseleave')
-		elem.css('fill','#58595B');
-	else {
-		if (child === 'mail')
-			elem.css('fill','#C40C0C');
-		else if (child === 'linkedin')
-			elem.css('fill','#0173B2');
-		else if (child === 'github')
-			elem.css('fill','#171516');
-	}
-	if (child === 'linkedin')
-		$(this).find('svg g g g circle').css('fill','#FFFFFF');//linkedin icon has a nested element that behaves differently
+	elem.attr("class", "circle");//$.addClass | $.removeClass doesn't behave well with SVG
+	if (event.type !== 'mouseleave')
+		elem.attr("class", child);
+	var color = elem.css("fill").slice(4, -1).split(',');
+	elem.css('fill', "#" + strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
 }
 
-/*attribution: https://snippetlib.com/jquery/replace_all_svg_images_with_inline_svg */
-/*  Replace all SVG images with inline SVG */
+/*attribution: https://snippetlib.com/jquery/replace_all_svg_images_with_inline_svg
+  Replace all SVG images with inline SVG */
 function svgInline(jq) {
 	$(jq).each(function(){
 		var $img = $(this);
