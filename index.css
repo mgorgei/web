@@ -31,7 +31,7 @@ body {
 	color: #E2DEB1;
 }
 
-.canvas {
+div.canvas {
 	background-color: #E2DEB1;
 	padding: 3px 0;
 }
@@ -84,9 +84,6 @@ circle.mail {
 circle.linkedin {
 	fill: #0173B2;
 }
-circle.linkedinNested {
-	fill: #FFFFFF;
-}
 circle.github {
 	fill: #171516;
 }
@@ -94,11 +91,4 @@ circle.github {
 .popover {
     width: 300px;
     height: 100px;
-}
-
-.experiment {
-	digitOn: #403D18;
-	digitOff: #E9E8DA;
-	digitOutline: #000000;
-	digitBackground: #E2DEB1;
 }
