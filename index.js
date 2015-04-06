@@ -24,6 +24,7 @@ Object.freeze(colorEnum);//closest implementation to enum available
 
 {
 	var clockIntervalID;
+	//var canvasClickID;
 	var canvas;
 	var context;
 	var base_image;
@@ -81,7 +82,7 @@ function main() {
 		});
 		/*********************************************************************/
 		//one time event for easier event handling (canvas should not use multiple color pickers)
-		$("#canvas").one("click", canvasColor);
+		$(".canvas").one("click", canvasColor);
 		//make ':' behave as a tab key by capturing simultaneous SHIFT + ';' key presses
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
 			if (event.which == 16)
@@ -365,7 +366,12 @@ function canvasColor(e) {
 		var color = $(cssClass).css("color").slice(4, -1).split(',');
 		$("#color_picker").val('#' + strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
 		$("#color_picker")[0].color.fromString($("#color_picker").val());
-		$("#color_picker").css({left: x, top: y});
+		if (e.target.id === 'canvas') {
+			var min = Math.min(y, $("#canvas").prop('height') - parseInt($("#color_picker").css('height')));
+			$("#color_picker").css({left: x, top: $("#canvas").offset().top + min});
+		}
+		else
+			$("#color_picker").css({left: $("#canvas").offset().left, top: $("#canvas").offset().top});
 		$("#color_picker").show();
 		$("#color_picker")[0].color.showPicker();
 	}
@@ -374,19 +380,23 @@ function canvasColor(e) {
 		$("#color_picker").hide();
 		$("#color_picker")[0].color.hidePicker();
 		reDraw();
-		$("#canvas").one("click", canvasColor);//reactivate the click event
+		$(".canvas").one("click", canvasColor);//reactivate the click event
 	}
 	//determine where you clicked to make context-sensitive color change for css
-	var x = Math.floor(e.pageX - $(e.target).offset().left);
-	var y = Math.floor(e.pageY - $(e.target).offset().top);
-	var sample = context.getImageData(x, y, 1, 1).data;
 	var classes = [".digitOn", ".digitOff", ".digitBackground", ".digitOutline"];
-	for (var i = 0; i < classes.length; i++)
-		if (match(classes[i])) {
-			showPicker(classes[i]);
-			$("#color_picker").one("change", {cssClass:classes[i]}, hidePicker);
-			break;
-		}
+	if (e.target.id === 'canvas') {
+		var x = Math.floor(e.pageX - $(e.target).offset().left);
+		var y = Math.floor(e.pageY - $(e.target).offset().top);
+		var sample = context.getImageData(x, y, 1, 1).data;
+		for (var i = 0; i < classes.length; i++)
+			if (match(classes[i])) {
+				break;
+			}
+	}
+	else
+		i = 2;//".digitBackground" because the div was clicked
+	showPicker(classes[i]);
+	$("#color_picker").one("change", {cssClass:classes[i]}, hidePicker);
 }
 
 /*validate user input can be interpreted as a valid time for today
