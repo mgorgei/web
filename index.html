@@ -10,24 +10,57 @@
 	<body>
 		
 		<!---->
-		<div id="links">
+		<div id="links" class="container-fluid">
 			<!--show basic structure of one link 6 * ?
 			id is dynamic, 'hyper' + the database id number
 			-->
 			<div id="hyper1" class="col-md-2">
 				<a href="http://google.com">
-					<h5 class="center">name</h5>
-					<img class="center" src="address" />
-					<p class="center">description</p><!--hover on div expands out to website description?-->
+					<h5 class="text-center">name</h5>
+					<img class="centered center-block" src="images/google.svg" />
+					<p class="text-center">description</p><!--hover on div expands out to website description?-->
 				</a>
 			</div>
-			<!--`Hyperlink` (
-  `id` int(11)  AUTO_INCREMENT,
-  `name` tinytext 
-  `description` tinytext NOT NULL,
-  `address` tinytext 
-  `image` tinytext NOT NULL,-->
+			<div id="hyper2" class="col-md-2">
+				<a href="http://google.com">
+					<h5 class="text-center">name</h5>
+					<img class="centered center-block" src="images/google.svg" />
+					<p class="text-center">description</p><!--hover on div expands out to website description?-->
+				</a>
+			</div>
+			<div id="hyper3" class="col-md-2">
+				<a href="http://google.com">
+					<h5 class="text-center">name</h5>
+					<img class="centered center-block" src="images/google.svg" />
+					<p class="text-center">description</p><!--hover on div expands out to website description?-->
+				</a>
+			</div>
 			<!--dynamically built-->
+		</div>
+		
+		<div>
+			<input id="hyper_name" type="url" />
+			<input id="hyper_description" type="month" />
+			<input id="hyper_address" type="email" />
+			<input id="hyper_imageURL" type="datetime-local" />
+		</div>
+		
+		<!--these buttons are temporary to test interactions, the idea is to 
+		use right-click with a contextual menu for these operations-->
+		<div id="linkInteraction" class="center-block" style="width:235px;margin-bottom:300px">
+			<div class="form-group">
+				<button type="button" id="add_hyper" class="btn btn-default" tabindex=16>
+					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
+				</button>
+				<button type="button" id="refresh_hyper" class="btn btn-default" tabindex=15>
+					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
+				</button>
+				<button type="button" id="delete_hyper" class="btn btn-default" tabindex=14>
+					<span class="glyphicon glyphicon-trash" aria-hidden="true">Delete</span>
+				</button>
+			</div>
+			<!--Paste this snippet at the end of the <form> where you want the reCAPTCHA widget to appear:-->
+			<div class="g-recaptcha" data-sitekey="6LfQ6gQTAAAAAPQm0vvxhSq1xuUdKdCmevRg_GgN"></div>
 		</div>
 		
 		
@@ -127,6 +160,7 @@
 		</nav>
 
 <!--********************************************************************************************-->
+		<script src='https://www.google.com/recaptcha/api.js'></script>
 		<script src="jscolor/jscolor.js"></script>
 		<script src="jquery-2.1.3.js"></script>
 		<script src="bs/js/bootstrap.js"></script>
