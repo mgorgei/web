@@ -59,6 +59,40 @@ if (isset($js->timers)) {
 		}
 	}
 }
+//deal with hyperlinks
+elseif (isset($js->hyper)) {
+	//GET READ //{"hyper":[{"READ":"all"}]}
+	print_r($js);
+	if ($_SERVER["REQUEST_METHOD"] === 'GET' and isset($js->hyper[0]->READ)) {
+		echo 'hyper get';
+	}
+	//POST CREATE //{"hyper":[{"CREATE":"link"}]}
+	elseif ($_SERVER["REQUEST_METHOD"] === 'POST' and isset($js->hyper[0]->CREATE)) {
+		echo 'hyper post';
+	}
+	//PUT UPDATE //{"hyper":[{"UPDATE":"empty"}]}
+	elseif ($_SERVER["REQUEST_METHOD"] === 'PUT' and isset($js->hyper[0]->UPDATE)) {
+		echo 'hyper put';
+		/*  if swapped_position < highlight_value
+		UPDATE Hyperlink SET order = order - 1 WHERE order > hightlight_value and order <= swapped_position
+		else
+		UPDATE Hyperlink SET order = order + 1 WHERE order >= swapped_position AND order < highlighted_value
+		UPDATE Hyperlink SET order = swapped_position*/
+	}
+	//DELETE DELETE //{"hyper":[{"DELETE":"id"}]}
+	elseif ($_SERVER["REQUEST_METHOD"] === 'DELETE' and isset($js->hyper[0]->DELETE)) {
+		echo 'hyper delete';
+	}
+	exit();
+	
+
+/*`Hyperlink` (
+  `id` int(11)  AUTO_INCREMENT,
+  `name` tinytext 
+  `description` tinytext NOT NULL,
+  `address` tinytext 
+  `image` tinytext NOT NULL,*/
+}
 //did not recognize the JSON given
 else {
 	header("HTTP/1.1 402 Payment required");
