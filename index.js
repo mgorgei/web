@@ -24,7 +24,6 @@ Object.freeze(colorEnum);//closest implementation to enum available
 
 {
 	var clockIntervalID;
-	//var canvasClickID;
 	var canvas;
 	var context;
 	var base_image;
@@ -50,6 +49,24 @@ function Timer(time, type, id) {
 }
 var timers = [];
 
+/*Hyper "class"
+id
+name
+description
+address
+imageURL
+order
+*/
+function Hyper(id, name, description, address, imageURL, order) {
+	this.id = id;
+	this.name = name;
+	this.description = description;
+	this.address = address;
+	this.imageURL = "images/twitter2_color.svg";//imageURL;
+	this.order = order;
+}
+var hyperlinks = [];
+  
 /*dumping ground for events
 */
 function main() {
@@ -74,15 +91,20 @@ function main() {
 			delay: '200'
 		});
 		$("#timer_hours").focus();
+		/*********************************************************************/
+		$("#add_hyper").click(getHyper);
+		$("#refresh_hyper").click(insertHyper);
+		$("#delete_hyper").click(deleteHyper);
+		/*********************************************************************/
 		//when the base_image is loaded, can draw the clock
 		$("#canvas").on("onloadeddata", function() {
 			updateClock();
 			clearInterval(clockIntervalID);
 			clockIntervalID = setInterval(updateClock, 500);
 		});
-		/*********************************************************************/
 		//one time event for easier event handling (canvas should not use multiple color pickers)
 		$(".canvas").one("click", canvasColor);
+		/*********************************************************************/
 		//make ':' behave as a tab key by capturing simultaneous SHIFT + ';' key presses
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
 			if (event.which == 16)
@@ -101,11 +123,14 @@ function main() {
 			$(this).toggleClass("act");
 		});*/
 		$("#timer_entry").on("input", validateInput);
+		/*********************************************************************/
 		$("#add_timer").on("click", attemptNewTimer);
 		$("#refresh_timer").on("click", getTimers);
 		$("#delete_timer").on("click", deleteTimer);
+		/*********************************************************************/
 		$("#table_body").on("click", selectTimer);
 		//bottom bar events
+		/*********************************************************************/
 		svgInline(".icon");//change all .icon images into inline svg to be modifiable
 		$("#botbar li").hover(hoverSVG);
 	});
@@ -566,7 +591,7 @@ function attemptNewTimer() {
 						console.log("success", data);
 						var obj = JSON.parse(String(data));
 						if ($.isPlainObject(obj))
-							timers[0].id = obj.timers[0]['id'];
+							timers[0].id = obj.timers[0]['id'];//get back the id that was just created, to avoid getting all information for one op
 						else
 							console.log("Data passed was not valid JSON or received no data");
 					},
@@ -698,4 +723,115 @@ function svgInline(jq) {
 			$img.replaceWith($svg);
 		});
 	});
+}
+
+/*hyperlink*******************************************************************/
+//
+function getHyper() {
+	if (!testLocal) {
+		$.ajax({
+			url : window.location.pathname + "ajax.php",
+			data : escape('{"hyper":[{"READ":"all"}]}'),
+			type : "GET",
+			success: function(data) {
+				console.log("success", data);
+			},
+			error: function() {
+				console.log("error");
+			},
+			complete: function() {
+				console.log("complete");
+			}
+		});
+	}
+}
+
+//
+function insertHyper() {
+	if (!testLocal) {
+		var obj = JSON.parse('{"hyper":[{"CREATE":"id", "name":"", "description":"", "address": "", "imageURL": "", "order": ""}]}');
+		obj.hyper[0]['name'] = 'filler';
+		obj.hyper[0]['description'] = 'filler';
+		obj.hyper[0]['address'] = 'filler';
+		obj.hyper[0]['imageURL'] = 'filler';
+		obj.hyper[0]['order'] = 'filler';
+		$.ajax({
+			url : window.location.pathname + "ajax.php",
+			data : escape(JSON.stringify(obj)),
+			type : "POST",
+			success: function(data) {
+				console.log("success", data);
+			},
+			error: function() {
+				console.log("error");
+			},
+			complete: function() {
+				console.log("complete");
+			}
+		});
+	}
+}
+
+/*would have to update the order of everything... could I do this with a single
+  SQL query instead of explicitly saying the order of every value?
+  if swapped_position < highlight_value
+	UPDATE Hyperlink SET order = order - 1 WHERE order > hightlight_value and order <= swapped_position
+  else
+	UPDATE Hyperlink SET order = order + 1 WHERE order >= swapped_position AND order < highlighted_value
+  UPDATE Hyperlink SET order = swapped_position
+*/
+function modifyHyper() {
+	if (!testLocal) {
+		var obj = JSON.parse('{"hyper":[{"UPDATE":"empty","order":"","swap":"","highlight":""}]}');
+		//obj.hyper[0]['UPDATE'] = 0;
+		obj.hyper[0]['order'] = 0;
+		obj.hyper[0]['swap'] = 0;
+		obj.hyper[0]['highlight'] = 0;
+		$.ajax({
+			url : window.location.pathname + "ajax.php",
+			data : escape(JSON.stringify(obj)),
+			type : "PUT",
+			success: function(data) {
+				console.log("success", data);
+				//swap the values in the object
+			},
+			error: function() {
+				console.log("error");
+			},
+			complete: function() {
+				console.log("complete");
+			}
+		});
+	}
+}
+
+/*`Hyperlink` (
+  `id` int(11)  AUTO_INCREMENT,
+  `name` tinytext 
+  `description` tinytext NOT NULL,
+  `address` tinytext 
+  `image` tinytext NOT NULL,*/
+//
+function deleteHyper() {
+	var id = $('#links').children('.activeLink').prop('id');
+	if (!testLocal) {
+		var obj = JSON.parse('{"hyper":[{"DELETE":"id"}]}');
+		obj.hyper[0]['DELETE'] = 0;//id.replace("hyper", '');
+		$.ajax({
+			url : window.location.pathname + "ajax.php",
+			data : escape(JSON.stringify(obj)),
+			type : "DELETE",
+			success: function(data) {
+				console.log("success", data);
+				id = -1;
+				//select another link
+			},
+			error: function() {
+				console.log("error");
+			},
+			complete: function() {
+				console.log("complete");
+			}
+		});
+	}
 }
