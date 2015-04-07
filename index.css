@@ -4,27 +4,24 @@ body {
 
 /*hyperlink*******************************************************************/
 #links {
-	height: 800px;
+	height: 850px;
 }
+
+.activeLink {
+	
+}
+
 
 /*clock***********************************************************************/
 .spacing {
 	margin: 2px;
 }
 
-.act {
-	border-bottom: solid 2px;
-	border-top: solid 2px;
-	border-color: #0000FF;
-	margin-top: 0px;
-	margin-bottom: 0px;
-}
-
 .center {
 	display: table;
 	margin: 0 auto;
 }
-img.center {
+img.centered {
 	width: 100px;
 	height: 100px;
 }
