@@ -54,18 +54,18 @@ id
 name
 description
 address
-imageURL
-order
+image
+linkOrder
 */
-function Hyper(id, name, description, address, imageURL, order) {
+function Hyper(id, name, description, address, image, linkOrder) {
 	this.id = id;
 	this.name = name;
 	this.description = description;
 	this.address = address;
-	this.imageURL = "images/twitter2_color.svg";//imageURL;
-	this.order = order;
+	this.image = image;
+	this.linkOrder = linkOrder;
 }
-var hyperlinks = [];
+var hyper = [];
   
 /*dumping ground for events
 */
@@ -82,6 +82,7 @@ function main() {
 	//document is ready
 	$( document ).ready(function() {
 		getTimers();
+		getHyper();
 		canvas = document.getElementById("canvas");
 		context = canvas.getContext('2d');
 		drawDigits();
@@ -92,9 +93,11 @@ function main() {
 		});
 		$("#timer_hours").focus();
 		/*********************************************************************/
-		$("#add_hyper").click(getHyper);
-		$("#refresh_hyper").click(insertHyper);
+		//temporary like a vapor... going to be modal dialogue
+		$("#add_hyper").click(insertHyper);
+		$("#refresh_hyper").click(getHyper);
 		$("#delete_hyper").click(deleteHyper);
+		$("#links").on('click', 'div', selectHyper);//need to delegate because the links are dynamically created
 		/*********************************************************************/
 		//when the base_image is loaded, can draw the clock
 		$("#canvas").on("onloadeddata", function() {
@@ -497,15 +500,20 @@ function validateInput() {
 //build DOM from existing timers
 function buildTimerDOM() {
 	$("#table_body > tr").slice(0).remove();
-	for (var i = 0; i < timers.length; i++) {
+	for (var i = 0; i < timers.length; i++)
 		addTimerDOM(i);
-	}
 }
 
 //add recent timer to the DOM
 function addTimerDOM(i) {
 	var type = ['Alarm', 'Stop Watch'];
 	$('#table_body').append("<tr><td>" + timers[i].time.toLocaleTimeString() + "</td><td>" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
+}
+
+//
+function deleteHyperDOM(index) {
+	timers.splice(index, 1);
+	$('#table_body tr')[index].remove();
 }
 
 //enables delete_timer button and add a class to visually indicate what timer is selected
@@ -632,10 +640,7 @@ function deleteTimer() {
 		}
 		//remove the affected table row by animation
 		$("#delete_timer").prop('disabled', true);
-		$(".timer_table_selected").fadeOut(200, function() {
-			timers.splice(index, 1);
-			$('#table_body tr')[index].remove();
-		});
+		$(".timer_table_selected").fadeOut(200, function () {deleteHyperDOM(index);});
 	}
 	else
 		alert("Nothing selected!");
@@ -726,8 +731,50 @@ function svgInline(jq) {
 }
 
 /*hyperlink*******************************************************************/
+
+//
+function buildHyperDOM() {
+	$("#links > ").remove();
+	for (var i = 0; i < hyper.length; i++)
+		addHyperDOM(i);
+}
+
+//
+function addHyperDOM(i) {
+	$("#links").append("<div id=\"hyper" + hyper[i].id + "\" class=\"col-md-2\">" +
+	"<a hrefXXXXX=\"" + hyper[i].address + "\">" +
+	"<h5 class=\"text-center\">" + hyper[i].name + "</h5>" + 
+	"<img class=\"centered center-block\" src=\"" + hyper[i].image + "\" />" + 
+	"<p class=\"text-center\">" + hyper[i].description + "</p></a></div>");
+}
+
+//
+function deleteHyperDOM(index) {
+	hyper.splice(index, 1);
+	$('#hyper' + index).remove();//failing
+}
+
+//
+function orderHyperDOM() {
+	return;
+}
+
+/*****************************************************************************/
+//
+function selectHyper(event) {
+	var target = $(event.currentTarget);
+	var hasClass = target.hasClass("activeLink");//assist in deselecting the table
+	$("#links > div").removeClass("activeLink");
+	//$("#delete_timer").prop('disabled', true);
+	if (!hasClass) {
+		$(target).addClass("activeLink");
+		//$("#delete_timer").prop('disabled', false);
+	}
+}
+
 //
 function getHyper() {
+	hyper = [];
 	if (!testLocal) {
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
@@ -735,32 +782,62 @@ function getHyper() {
 			type : "GET",
 			success: function(data) {
 				console.log("success", data);
+				var obj = JSON.parse(String(data));
+				if ($.isPlainObject(obj)) {
+					for(var i = 0; i < obj.hyper.length; i++)
+						hyper[i] = new Hyper(obj.hyper[i]['id'], obj.hyper[i]['name'], obj.hyper[i]['description'], obj.hyper[i]['address'], obj.hyper[i]['image'], obj.hyper[i]['order']);
+				}
+				else
+					console.log("Data passed was not valid JSON");
 			},
 			error: function() {
 				console.log("error");
 			},
 			complete: function() {
+				buildHyperDOM();
 				console.log("complete");
 			}
 		});
 	}
+	else {
+		for (var i = 0; i < 5; i++)
+			hyper[i] = new Hyper(i+1, 'name', 'description', 'address', 'images/google.svg', i+1);
+		buildHyperDOM();
+	}
+	
 }
 
 //
 function insertHyper() {
+	var tmp = $("#hyper_entry > ");
+	hyper[hyper.length] = new Hyper(
+		Math.floor(Math.random() * 1000000),//temp value, hopefully nevers collides for offline
+		tmp.find("input[name=hyper_name]").val(),
+		tmp.find("input[name=hyper_description]").val(),
+		tmp.find("input[name=hyper_address]").val(),
+		tmp.find("input[name=hyper_image]").val(),
+		hyper.length+1
+	);
 	if (!testLocal) {
-		var obj = JSON.parse('{"hyper":[{"CREATE":"id", "name":"", "description":"", "address": "", "imageURL": "", "order": ""}]}');
-		obj.hyper[0]['name'] = 'filler';
-		obj.hyper[0]['description'] = 'filler';
-		obj.hyper[0]['address'] = 'filler';
-		obj.hyper[0]['imageURL'] = 'filler';
-		obj.hyper[0]['order'] = 'filler';
+		var cur = hyper.length - 1;
+		var obj = JSON.parse('{"hyper":[{"CREATE":"id", "name":"", "description":"", "address":"", "image":"", "linkOrder":""}]}');
+		obj.hyper[0]['name'] = hyper[cur].name;
+		obj.hyper[0]['description'] = hyper[cur].description;
+		obj.hyper[0]['address'] = hyper[cur].address;
+		obj.hyper[0]['image'] = hyper[cur].image;
+		obj.hyper[0]['linkOrder'] = hyper[cur].linkOrder;
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
 			data : escape(JSON.stringify(obj)),
 			type : "POST",
 			success: function(data) {
 				console.log("success", data);
+				obj = JSON.parse(String(data));
+				if ($.isPlainObject(obj))
+					hyper[cur].id = obj.hyper[0]['id'];//set the id to the one on the server so that it can be interacted with
+				else
+					console.log("Data passed was not valid JSON or received no data");
+				addHyperDOM(cur);
 			},
 			error: function() {
 				console.log("error");
@@ -770,23 +847,19 @@ function insertHyper() {
 			}
 		});
 	}
+	else
+		addHyperDOM(hyper.length - 1);
 }
 
-/*would have to update the order of everything... could I do this with a single
-  SQL query instead of explicitly saying the order of every value?
-  if swapped_position < highlight_value
-	UPDATE Hyperlink SET order = order - 1 WHERE order > hightlight_value and order <= swapped_position
-  else
-	UPDATE Hyperlink SET order = order + 1 WHERE order >= swapped_position AND order < highlighted_value
-  UPDATE Hyperlink SET order = swapped_position
-*/
-function modifyHyper() {
+//
+function modifyHyper(id, linkOrder, swap, active) {
+	//unimplemented...
 	if (!testLocal) {
-		var obj = JSON.parse('{"hyper":[{"UPDATE":"empty","order":"","swap":"","highlight":""}]}');
-		//obj.hyper[0]['UPDATE'] = 0;
-		obj.hyper[0]['order'] = 0;
-		obj.hyper[0]['swap'] = 0;
-		obj.hyper[0]['highlight'] = 0;
+		var obj = JSON.parse('{"hyper":[{"UPDATE":"","swap":"","active":""}]}');
+		obj.hyper[0]['UPDATE'] = linkOrder;//id
+		//obj.hyper[0]['linkOrder'] = linkOrder;
+		obj.hyper[0]['swap'] = swap;
+		obj.hyper[0]['active'] = active;
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
 			data : escape(JSON.stringify(obj)),
@@ -805,26 +878,25 @@ function modifyHyper() {
 	}
 }
 
-/*`Hyperlink` (
-  `id` int(11)  AUTO_INCREMENT,
-  `name` tinytext 
-  `description` tinytext NOT NULL,
-  `address` tinytext 
-  `image` tinytext NOT NULL,*/
 //
 function deleteHyper() {
-	var id = $('#links').children('.activeLink').prop('id');
+	var index = $('#links').children('.activeLink').prop('id');
+	if (typeof index === 'undefined') {
+		alert('No links have been selected');
+		return;
+	}
+	index = index.replace('hyper', '');
 	if (!testLocal) {
 		var obj = JSON.parse('{"hyper":[{"DELETE":"id"}]}');
-		obj.hyper[0]['DELETE'] = 0;//id.replace("hyper", '');
+		obj.hyper[0]['DELETE'] = index;
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
 			data : escape(JSON.stringify(obj)),
 			type : "DELETE",
 			success: function(data) {
 				console.log("success", data);
-				id = -1;
-				//select another link
+				deleteHyperDOM(index);
+				//select another link?
 			},
 			error: function() {
 				console.log("error");
