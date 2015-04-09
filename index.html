@@ -13,36 +13,36 @@
 		<div id="links" class="container-fluid">
 			<!--show basic structure of one link 6 * ?
 			id is dynamic, 'hyper' + the database id number
-			-->
+			
+		 ***modal dialogue for new input***
+		 
 			<div id="hyper1" class="col-md-2">
 				<a href="http://google.com">
 					<h5 class="text-center">name</h5>
 					<img class="centered center-block" src="images/google.svg" />
-					<p class="text-center">description</p><!--hover on div expands out to website description?-->
+					<p class="text-center">description</p><!--hover on div expands out to website description?
 				</a>
-			</div>
-			<div id="hyper2" class="col-md-2">
-				<a href="http://google.com">
-					<h5 class="text-center">name</h5>
-					<img class="centered center-block" src="images/google.svg" />
-					<p class="text-center">description</p><!--hover on div expands out to website description?-->
-				</a>
-			</div>
-			<div id="hyper3" class="col-md-2">
-				<a href="http://google.com">
-					<h5 class="text-center">name</h5>
-					<img class="centered center-block" src="images/google.svg" />
-					<p class="text-center">description</p><!--hover on div expands out to website description?-->
-				</a>
-			</div>
+			</div>-->
 			<!--dynamically built-->
 		</div>
 		
-		<div>
-			<input id="hyper_name" type="url" />
-			<input id="hyper_description" type="month" />
-			<input id="hyper_address" type="email" />
-			<input id="hyper_imageURL" type="datetime-local" />
+		<div id="hyper_entry">
+			<div class="input-group">
+				<label class="input-group-addon" for="hyper_name">Name</label>
+				<input id="hyper_name" name="hyper_name" type="text" />
+			</div>
+			<div class="input-group">
+				<label class="input-group-addon" for="hyper_description">Description</label>
+				<input id="hyper_description" name="hyper_description" type="text" />
+			</div>
+			<div class="input-group">
+				<label class="input-group-addon" for="hyper_address">Address</label>
+				<input id="hyper_address" name="hyper_address" type="url" />
+			</div>
+			<div class="input-group">
+				<label class="input-group-addon" for="hyper_image">Image URL</label>
+				<input id="hyper_image" name="hyper_image" type="url" />
+			</div>
 		</div>
 		
 		<!--these buttons are temporary to test interactions, the idea is to 
