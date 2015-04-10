@@ -26,7 +26,7 @@ $js = json_decode(rawurldecode($data));
 if (isset($js->timers)) {
 	//GET READ //{"timers":[{"READ":"all"}]}
 	if ($_SERVER["REQUEST_METHOD"] === 'GET' and isset($js->timers[0]->READ)) {
-		$sql = 'SELECT id, type, time FROM `Timer`';
+		$sql = 'SELECT id, type, time FROM `Timer` WHERE deleteFlag=0';
 		foreach ($dbh->query($sql) as $row) {
 			$out['id'] = $row['id'];
 			$out['type'] = $row['type'];
@@ -41,8 +41,8 @@ if (isset($js->timers)) {
 	elseif ($_SERVER["REQUEST_METHOD"] === 'POST' and isset($js->timers[0]->CREATE)) {
 		if (is_numeric(str_replace(':', '', $js->timers[0]->CREATE))) {
 			//should check if the time is valid instead of just numeric!!!
-			$data = array($js->timers[0]->CREATE, 0);
-			$STH = $dbh->prepare('INSERT INTO `Timer` (`time`, `type`) VALUES (?, ?)');
+			$data = array($js->timers[0]->CREATE, 0, 0);
+			$STH = $dbh->prepare('INSERT INTO `Timer` (`time`, `type`, `deleteFlag`) VALUES (?, ?, ?)');
 			$STH->execute($data);
 			//getting the MAX id should get the latest created auto increment primary key value to pass back to the application
 			$sql = 'SELECT MAX(id) FROM `Timer`';
@@ -54,8 +54,8 @@ if (isset($js->timers)) {
 	//DELETE DELETE //{"timers":[{"DELETE":"id"}]}
 	elseif ($_SERVER["REQUEST_METHOD"] === 'DELETE' and isset($js->timers[0]->DELETE)) {
 		if (is_numeric($js->timers[0]->DELETE)) {
-			$STH = $dbh->prepare('DELETE FROM `Timer` WHERE id=?');
-			$STH->execute(array($js->timers[0]->DELETE));
+			$STH = $dbh->prepare('UPDATE `Timer` SET deleteFlag=? WHERE id=?');
+			$STH->execute(array(1, $js->timers[0]->DELETE));
 			exit();
 		}
 	}
@@ -65,7 +65,7 @@ if (isset($js->timers)) {
 elseif (isset($js->hyper)) {
 	//GET READ //{"hyper":[{"READ":"all"}]}
 	if ($_SERVER["REQUEST_METHOD"] === 'GET' and isset($js->hyper[0]->READ)) {
-		$sql = 'SELECT id, name, description, address, image, linkOrder FROM `Hyperlink`';
+		$sql = 'SELECT id, name, description, address, image, linkOrder FROM `Hyperlink` WHERE `deleteFlag`=0';
 		foreach ($dbh->query($sql) as $row) {
 			$out['id'] = $row['id'];
 			$out['name'] = $row['name'];
@@ -82,8 +82,8 @@ elseif (isset($js->hyper)) {
 	//POST CREATE //{"hyper":[{"CREATE":"link"}]}
 	elseif ($_SERVER["REQUEST_METHOD"] === 'POST' and isset($js->hyper[0]->CREATE)) {
 		if (true) {//presume XSS-checking is going on for now...
-			$data = array($js->hyper[0]->name, $js->hyper[0]->description, $js->hyper[0]->address, $js->hyper[0]->image, $js->hyper[0]->linkOrder);
-			$STH = $dbh->prepare('INSERT INTO `Hyperlink` (`name`, `description`, `address`, `image`, `linkOrder`) VALUES (?, ?, ?, ?, ?)');
+			$data = array($js->hyper[0]->name, $js->hyper[0]->description, $js->hyper[0]->address, $js->hyper[0]->image, $js->hyper[0]->linkOrder, 0);
+			$STH = $dbh->prepare('INSERT INTO `Hyperlink` (`name`, `description`, `address`, `image`, `linkOrder`, `deleteFlag`) VALUES (?, ?, ?, ?, ?, ?)');
 			$STH->execute($data);
 			//get the last inserted auto increment id
 			$sql = 'SELECT MAX(id) FROM `Hyperlink`';
@@ -98,12 +98,12 @@ elseif (isset($js->hyper)) {
 			//the active item is being placed at a position more than itself
 			if ($js->hyper[0]->swap < $js->hyper[0]->active) {
 				$data = array($js->hyper[0]->active, $js->hyper[0]->swap);
-				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder - 1 WHERE linkOrder > ? AND linkOrder <= ?';
+				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder - 1 WHERE linkOrder > ? AND linkOrder <= ? AND deleteFlag=0';
 			}
 			//the active item is being placed at a position less than itself
 			else {
 				$data = array($js->hyper[0]->swap, $js->hyper[0]->active);
-				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder + 1 WHERE linkOrder >= ? AND linkOrder < ?';
+				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder + 1 WHERE linkOrder >= ? AND linkOrder < ? AND deleteFlag=0';
 			}
 			//moves items around to compensate for the shift
 			$STH = $dbh->prepare($sql);
@@ -119,12 +119,12 @@ elseif (isset($js->hyper)) {
 	elseif ($_SERVER["REQUEST_METHOD"] === 'DELETE' and isset($js->hyper[0]->DELETE)) {
 		if (is_numeric($js->hyper[0]->DELETE)) {
 			//move all with linkOrder > than the selected's linkOrder back
-			$STH = $dbh->prepare('UPDATE Hyperlink SET linkOrder = linkOrder - 1 WHERE linkOrder > ' .
+			$STH = $dbh->prepare('UPDATE Hyperlink SET linkOrder = linkOrder - 1 WHERE deleteFlag=0 AND linkOrder > ' .
 								 '(SELECT * from (SELECT linkOrder FROM Hyperlink WHERE id = ?) as t)');
 			$STH->execute(array($js->hyper[0]->DELETE));
 			//now delete
-			$STH = $dbh->prepare('DELETE FROM `Hyperlink` WHERE id=?');
-			$STH->execute(array($js->hyper[0]->DELETE));
+			$STH = $dbh->prepare('UPDATE `Hyperlink` SET deleteFlag=? WHERE id=?');
+			$STH->execute(array(1, $js->hyper[0]->DELETE));
 			exit();
 		}
 	}
