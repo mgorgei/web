@@ -66,19 +66,22 @@ function Hyper(id, name, description, address, image, linkOrder) {
 	this.linkOrder = linkOrder;
 }
 var hyper = [];
-  
+
 /*dumping ground for events
 */
 function main() {
-	//resize all of the labels to the largest (for small width form)
-	var maxLabelWidths = [];
-	$('input[type=number]', '#timer_entry').map(function() {
-		maxLabelWidths.push(parseInt($('label[for=' + $(this).prop('id') + ']', '#timer_entry').css('width')));
-	});
-	maxLabelWidth = Math.max.apply(null, maxLabelWidths);
-	$('input[type=number]', '#timer_entry').map(function() {
-		$('label[for=' + $(this).prop('id') + ']', '#timer_entry').css('width', maxLabelWidth);
-	});
+	function resizeLabelWidths(jq, what) {//resize all of the labels to the largest (for small width form)
+		var maxLabelWidths = [];
+		$(what, jq).map(function() {
+			maxLabelWidths.push(parseInt($('label[for=' + $(this).prop('id') + ']', jq).css('width')));
+		});
+		var maxLabelWidth = Math.max.apply(null, maxLabelWidths);
+		$(what, jq).map(function() {
+			$('label[for=' + $(this).prop('id') + ']', jq).css('width', maxLabelWidth);
+		});
+	}
+	$('#context').hide();
+	resizeLabelWidths('#timer_entry', 'input[type=number]');
 	//document is ready
 	$( document ).ready(function() {
 		getTimers();
@@ -93,11 +96,36 @@ function main() {
 		});
 		$("#timer_hours").focus();
 		/*********************************************************************/
-		//temporary like a vapor... going to be modal dialogue
+		$("#myModal").one('shown.bs.modal', function () {
+			resizeLabelWidths('#hyper_entry', 'input');
+		});
+		$("#hyper_modal").click(function () {$('#context').hide();});
 		$("#add_hyper").click(insertHyper);
 		$("#refresh_hyper").click(getHyper);
 		$("#delete_hyper").click(deleteHyper);
 		$("#links").on('click', 'div', selectHyper);//need to delegate because the links are dynamically created
+		//hyperlink context menu
+		if ($('#links').addEventListener) {
+			$('#links').addEventListener('contextmenu', function(e) {
+				alert("You've tried to open context menu"); //here you draw your own menu
+				e.preventDefault();
+			}, false);
+		} else {
+			$('body').on('contextmenu', '#links', function(e) {
+				$('#context').show();
+				window.event.returnValue = false;
+				var x = e.pageX;
+				var y = e.pageY;
+				$("#context").css({left: x, top: y});
+			});
+		}
+		//dismiss context menu
+		$('body').click(function() {
+			if ($('#context').is(':visible')) {
+				$('#context').hide();
+				console.log('ok');
+			}
+		});
 		/*********************************************************************/
 		//when the base_image is loaded, can draw the clock
 		$("#canvas").on("onloadeddata", function() {
@@ -121,10 +149,6 @@ function main() {
 			if (event.which == 16)
 				shiftKey = false;
 		});
-		//inline form events
-		/*$("#timer_entry div.input-group, #timer_entry .form-group button, #timer_entry .btn-group label").hover(function() {
-			$(this).toggleClass("act");
-		});*/
 		$("#timer_entry").on("input", validateInput);
 		/*********************************************************************/
 		$("#add_timer").on("click", attemptNewTimer);
@@ -765,15 +789,16 @@ function selectHyper(event) {
 	var target = $(event.currentTarget);
 	var hasClass = target.hasClass("activeLink");//assist in deselecting the table
 	$("#links > div").removeClass("activeLink");
-	//$("#delete_timer").prop('disabled', true);
+	$("#delete_hyper").prop('disabled', true);
 	if (!hasClass) {
 		$(target).addClass("activeLink");
-		//$("#delete_timer").prop('disabled', false);
+		$("#delete_hyper").prop('disabled', false);
 	}
 }
 
 //
 function getHyper() {
+	$('#context').hide();
 	hyper = [];
 	if (!testLocal) {
 		$.ajax({
@@ -880,6 +905,7 @@ function modifyHyper(id, linkOrder, swap, active) {
 
 //
 function deleteHyper() {
+	$('#context').hide();
 	var index = $('#links').children('.activeLink').prop('id');
 	if (typeof index === 'undefined') {
 		alert('No links have been selected');

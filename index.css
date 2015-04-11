@@ -4,13 +4,34 @@ body {
 
 /*hyperlink*******************************************************************/
 #links {
-	height: 850px;
+	height: 500px;
+	padding: 15px;
+	background-color: #0000FF;
 }
 
 .activeLink {
 	background-color: #00FF00;
 }
 
+/*context menu*/
+#context {
+	position: absolute;
+	display: inline-block;
+	background-color: #DDD;
+	border: 2px solid #AAA;
+}
+
+#context div{
+	padding: 5px 10px;
+	border-left: 3px solid;
+	border-color: #DDD;
+	margin: 5px;
+}
+
+#context div:hover{
+	border-color: #D24836;
+	background-color: #FFF;
+}
 
 /*clock***********************************************************************/
 .spacing {
@@ -110,7 +131,7 @@ circle {
 	fill: #58595B;
 }
 circle.mail {
-	fill: #C40C0C;
+	fill: #D24836;
 }
 circle.linkedin {
 	fill: #0173B2;

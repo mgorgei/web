@@ -9,61 +9,63 @@
 	</head>
 	<body>
 		
-		<!---->
+		<!--hyperlinks-->
 		<div id="links" class="container-fluid">
-			<!--show basic structure of one link 6 * ?
-			id is dynamic, 'hyper' + the database id number
-			
-		 ***modal dialogue for new input***
-		 
-			<div id="hyper1" class="col-md-2">
-				<a href="http://google.com">
-					<h5 class="text-center">name</h5>
-					<img class="centered center-block" src="images/google.svg" />
-					<p class="text-center">description</p><!--hover on div expands out to website description?
-				</a>
-			</div>-->
+			<!--***modal dialogue for new input***
+
 			<!--dynamically built-->
 		</div>
 		
+		<!--context menu-->
+		<div id="context" hidden>
+			<div id="hyper_modal" data-toggle="modal" data-target="#myModal">New Hyperlink</div>
+			<div id="refresh_hyper">Refresh</div>
+			<div id="delete_hyper">Delete Selected</div>
+		</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Enter new hyperlink</h4>
+      </div>
+      <div class="modal-body">
+        
 		<div id="hyper_entry">
 			<div class="input-group">
 				<label class="input-group-addon" for="hyper_name">Name</label>
-				<input id="hyper_name" name="hyper_name" type="text" />
+				<input id="hyper_name" name="hyper_name" type="text" class="form-control" />
 			</div>
 			<div class="input-group">
 				<label class="input-group-addon" for="hyper_description">Description</label>
-				<input id="hyper_description" name="hyper_description" type="text" />
+				<input id="hyper_description" name="hyper_description" type="text" class="form-control" />
 			</div>
 			<div class="input-group">
 				<label class="input-group-addon" for="hyper_address">Address</label>
-				<input id="hyper_address" name="hyper_address" type="url" />
+				<input id="hyper_address" name="hyper_address" type="text" class="form-control" />
 			</div>
 			<div class="input-group">
 				<label class="input-group-addon" for="hyper_image">Image URL</label>
-				<input id="hyper_image" name="hyper_image" type="url" />
+				<input id="hyper_image" name="hyper_image" type="text" class="form-control" disabled="true" value="images/google.svg" />
 			</div>
 		</div>
+		<!--Paste this snippet at the end of the <form> where you want the reCAPTCHA widget to appear:-->
+		<div class="g-recaptcha" data-sitekey="6LfQ6gQTAAAAAPQm0vvxhSq1xuUdKdCmevRg_GgN"></div><!--center this-->
 		
-		<!--these buttons are temporary to test interactions, the idea is to 
-		use right-click with a contextual menu for these operations-->
-		<div id="linkInteraction" class="center-block" style="width:235px;margin-bottom:300px">
-			<div class="form-group">
-				<button type="button" id="add_hyper" class="btn btn-default" tabindex=16>
-					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
-				</button>
-				<button type="button" id="refresh_hyper" class="btn btn-default" tabindex=15>
-					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
-				</button>
-				<button type="button" id="delete_hyper" class="btn btn-default" tabindex=14>
-					<span class="glyphicon glyphicon-trash" aria-hidden="true">Delete</span>
-				</button>
-			</div>
-			<!--Paste this snippet at the end of the <form> where you want the reCAPTCHA widget to appear:-->
-			<div class="g-recaptcha" data-sitekey="6LfQ6gQTAAAAAPQm0vvxhSq1xuUdKdCmevRg_GgN"></div>
-		</div>
-		
-		
+      </div>
+      <div class="modal-footer">
+		<button type="button" id="add_hyper" class="btn btn-primary">
+			<span class="glyphicon glyphicon-plus" aria-hidden="true">New</span>
+		</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <!--<button type="button" class="btn btn-primary">Save changes</button>-->
+      </div>
+    </div>
+  </div>
+</div>
+
 		<!--clock in canvas-->
 		<input id="color_picker" class="color {pickerFaceColor:'#EEE'}" />
 		<div class="canvas container-fluid">
@@ -98,7 +100,7 @@
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
 				</button>
 				<button type="button" id="refresh_timer" class="btn btn-default" tabindex=5>
-					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
+					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span><!--this button should be unnecessary when server situation is resolved-->
 				</button>
 				<button type="button" id="delete_timer" class="btn btn-default" tabindex=6 disabled="true">
 					<span class="glyphicon glyphicon-trash" aria-hidden="true">Remove</span>
