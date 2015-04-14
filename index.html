@@ -11,60 +11,64 @@
 		
 		<!--hyperlinks-->
 		<div id="links" class="container-fluid">
-			<!--***modal dialogue for new input***
-
 			<!--dynamically built-->
 		</div>
 		
 		<!--context menu-->
 		<div id="context" hidden>
-			<div id="hyper_modal" data-toggle="modal" data-target="#myModal">New Hyperlink</div>
-			<div id="refresh_hyper">Refresh</div>
-			<div id="delete_hyper">Delete Selected</div>
+			<option id="hyper_modal" data-toggle="modal" data-target="#myModal">New Hyperlink</option>
+			<option id="refresh_hyper">Refresh</option>
+			<option id="delete_hyper">Delete Selected</option>
 		</div>
 
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Enter new hyperlink</h4>
-      </div>
-      <div class="modal-body">
-        
-		<div id="hyper_entry">
-			<div class="input-group">
-				<label class="input-group-addon" for="hyper_name">Name</label>
-				<input id="hyper_name" name="hyper_name" type="text" class="form-control" />
+		<!--modal-->
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		  <div class="modal-dialog">
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">Enter new hyperlink</h4>
+			  </div>
+			  <div class="modal-body">
+			  
+				<div id="hyper_entry" class="form-horizontal">
+					<div class="row spacing2">
+						<label class="control-label col-sm-2" for="hyper_name">Name</label>
+						<div class="col-sm-10">
+							<input id="hyper_name" name="hyper_name" type="text" class="form-control" />
+						</div>
+					</div>
+					<div class="row spacing2">
+						<label class="control-label col-sm-2" for="hyper_description">Description</label>
+						<div class="col-sm-10">
+							<input id="hyper_description" name="hyper_description" type="text" class="form-control" disabled="true" />
+						</div>
+					</div>
+					<div class="row spacing2">
+						<label class="control-label col-sm-2" for="hyper_address">Address</label>
+						<div class="col-sm-10">
+							<input id="hyper_address" name="hyper_address" type="text" class="form-control" />
+						</div>
+					</div>
+					<div class="row spacing2">
+						<label class="control-label col-sm-2" for="hyper_image">Image url</label>
+						<div class="col-sm-10">
+							<input id="hyper_image" name="hyper_image" type="text" class="form-control" disabled="true" value="images/google.svg" />
+						</div>
+					</div>
+				</div>
+				<div class="g-recaptcha center" data-sitekey="6LfQ6gQTAAAAAPQm0vvxhSq1xuUdKdCmevRg_GgN"></div>
+				
+			  </div>
+			  <div class="modal-footer">
+				<button type="button" id="add_hyper" class="btn btn-primary" data-dismiss="modal">
+					<span class="glyphicon glyphicon-plus" aria-hidden="true">New</span>
+				</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			  </div>
 			</div>
-			<div class="input-group">
-				<label class="input-group-addon" for="hyper_description">Description</label>
-				<input id="hyper_description" name="hyper_description" type="text" class="form-control" />
-			</div>
-			<div class="input-group">
-				<label class="input-group-addon" for="hyper_address">Address</label>
-				<input id="hyper_address" name="hyper_address" type="text" class="form-control" />
-			</div>
-			<div class="input-group">
-				<label class="input-group-addon" for="hyper_image">Image URL</label>
-				<input id="hyper_image" name="hyper_image" type="text" class="form-control" disabled="true" value="images/google.svg" />
-			</div>
+		  </div>
 		</div>
-		<!--Paste this snippet at the end of the <form> where you want the reCAPTCHA widget to appear:-->
-		<div class="g-recaptcha" data-sitekey="6LfQ6gQTAAAAAPQm0vvxhSq1xuUdKdCmevRg_GgN"></div><!--center this-->
-		
-      </div>
-      <div class="modal-footer">
-		<button type="button" id="add_hyper" class="btn btn-primary">
-			<span class="glyphicon glyphicon-plus" aria-hidden="true">New</span>
-		</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <!--<button type="button" class="btn btn-primary">Save changes</button>-->
-      </div>
-    </div>
-  </div>
-</div>
 
 		<!--clock in canvas-->
 		<input id="color_picker" class="color {pickerFaceColor:'#EEE'}" />
