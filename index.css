@@ -4,9 +4,18 @@ body {
 
 /*hyperlink*******************************************************************/
 #links {
-	height: 500px;
+	/*height: 300px;*/
 	padding: 15px;
-	background-color: #0000FF;
+	background-color: #999;
+}
+
+#links div {
+	background-color: #CCC;
+	cursor: move;
+}
+
+.dragStart {
+	opacity: .4;
 }
 
 .activeLink {
@@ -15,27 +24,31 @@ body {
 
 /*context menu*/
 #context {
+	z-index: 1000;
 	position: absolute;
 	display: inline-block;
 	background-color: #DDD;
-	border: 2px solid #AAA;
+	box-shadow: inset 0 0 5px #000;
 }
 
-#context div{
+#context option {
 	padding: 5px 10px;
 	border-left: 3px solid;
 	border-color: #DDD;
 	margin: 5px;
 }
 
-#context div:hover{
-	border-color: #D24836;
+#context option:hover:not(:disabled) {
+	border-color: #36D248;
 	background-color: #FFF;
 }
 
 /*clock***********************************************************************/
 .spacing {
 	margin: 2px;
+}
+.spacing2 {
+	margin: 5px 0px;
 }
 
 .center {
