@@ -65,7 +65,7 @@ if (isset($js->timers)) {
 elseif (isset($js->hyper)) {
 	//GET READ //{"hyper":[{"READ":"all"}]}
 	if ($_SERVER["REQUEST_METHOD"] === 'GET' and isset($js->hyper[0]->READ)) {
-		$sql = 'SELECT id, name, description, address, image, linkOrder FROM `Hyperlink` WHERE `deleteFlag`=0';
+		$sql = 'SELECT id, name, description, address, image, linkOrder FROM `Hyperlink` WHERE `deleteFlag`=0 ORDER BY linkOrder ASC';
 		foreach ($dbh->query($sql) as $row) {
 			$out['id'] = $row['id'];
 			$out['name'] = $row['name'];
@@ -94,22 +94,22 @@ elseif (isset($js->hyper)) {
 	}
 	//PUT UPDATE //{"hyper":[{"UPDATE":"empty"}]}
 	elseif ($_SERVER["REQUEST_METHOD"] === 'PUT' and isset($js->hyper[0]->UPDATE)) {
-		if (true) {//presume XSS-checking is going on for now...
+		if (is_numeric($js->hyper[0]->UPDATE) and true) {//presume XSS-checking is going on for now...
 			//the active item is being placed at a position more than itself
-			if ($js->hyper[0]->swap < $js->hyper[0]->active) {
-				$data = array($js->hyper[0]->active, $js->hyper[0]->swap);
-				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder - 1 WHERE linkOrder > ? AND linkOrder <= ? AND deleteFlag=0';
-			}
+			$data = array($js->hyper[0]->active, $js->hyper[0]->swap);
+			if ($js->hyper[0]->active < $js->hyper[0]->swap)
+				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder - 1 WHERE linkOrder > ? AND linkOrder < ? AND deleteFlag=0';
 			//the active item is being placed at a position less than itself
-			else {
-				$data = array($js->hyper[0]->swap, $js->hyper[0]->active);
-				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder + 1 WHERE linkOrder >= ? AND linkOrder < ? AND deleteFlag=0';
-			}
+			else
+				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder + 1 WHERE linkOrder < ? AND linkOrder >= ? AND deleteFlag=0';
 			//moves items around to compensate for the shift
 			$STH = $dbh->prepare($sql);
 			$STH->execute($data);
 			//update the active hyperlink with the new value
-			$data = array($js->hyper[0]->swap, $js->hyper[0]->UPDATE);
+			if ($js->hyper[0]->active < $js->hyper[0]->swap)
+				$data = array($js->hyper[0]->swap - 1, $js->hyper[0]->UPDATE);
+			else
+				$data = array($js->hyper[0]->swap, $js->hyper[0]->UPDATE);
 			$STH = $dbh->prepare('UPDATE `Hyperlink` SET linkOrder = ? WHERE id = ?');
 			$STH->execute($data);
 			exit();
