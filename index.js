@@ -87,9 +87,10 @@ function Drag() {
 
 //move me later
 function findOwner(index) {//DOM index
-	for (var i = 0; i < hyper.length; i++)
-		if (parseInt(index.slice(5)) === hyper[i].id)
+	for (var i = 0; i < hyper.length; i++) {
+		if (parseInt(index.slice(5)) === parseInt(hyper[i].id))
 			return i;
+	}
 }
 
 /*dumping ground for events
@@ -134,7 +135,7 @@ function main() {
 			//may be able to skip dragleave by detecting a change in entry...
 		});
 		
-		$('#links').on('dragend', function (e) {
+		$('#links').on('dragend', function (e) {//should be a way to refactor this mess...
 			$("#links > *").removeClass("dragStart");
 			var index = findOwner(drag.start);
 			if (drag.owner === 'links') {
@@ -142,6 +143,7 @@ function main() {
 				console.log(e.originalEvent.pageX, e.originalEvent.pageY);
 				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left')) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top'))) {
 					if (hyper[index].linkOrder != 1) {//don't move if the element is already first
+						modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, 1);
 						$('#' + drag.start).insertBefore($('#links').children().first());
 						for (var i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder < hyper[index].linkOrder)
@@ -151,6 +153,7 @@ function main() {
 				}
 				else {//drop as last object in the list
 					if (hyper[index].linkOrder != hyper.length) {
+						modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper.length + 1);
 						$('#' + drag.start).insertAfter($('#links').children().last());
 						for (var i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder > hyper[index].linkOrder)
@@ -160,12 +163,14 @@ function main() {
 				}
 			}
 			else {
-				if (drag.current !== drag.start) {//do nothing except maybe clear classes
+				if (drag.current !== drag.start) {
 				//divide in two situations between half the width of the div?
 					$('#' + drag.start).insertBefore($('#' + drag.current));
 					var blah = findOwner(drag.current);
+					console.log('blah', blah, drag.current);
 					var tmp = hyper[blah].linkOrder;
 					//12345; drag 4 onto 2; 14235; inc >= 2 and < 4, set 4 = 2's linkOrder
+					modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper[findOwner(drag.current)].linkOrder);
 					if (hyper[index].linkOrder > hyper[blah].linkOrder){
 						for (var i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder < hyper[index].linkOrder && hyper[i].linkOrder >= hyper[blah].linkOrder)
@@ -184,25 +189,6 @@ function main() {
 			}
 		});
 	}
-			//modifyHyper(); (id, linkOrder, swap, active) // 'hyper' + hyper[?].id
-			//parseInt(drag.current.slice(5))
-			//modifyHyper('filler', hyper[].linkOrder, 0, active);
-/*			if ($js->hyper[0]->swap < $js->hyper[0]->active) {
-				$data = array($js->hyper[0]->active, $js->hyper[0]->swap);
-				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder - 1 WHERE linkOrder > ? AND linkOrder <= ? AND deleteFlag=0';
-			}
-			//the active item is being placed at a position less than itself
-			else {
-				$data = array($js->hyper[0]->swap, $js->hyper[0]->active);
-				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder + 1 WHERE linkOrder >= ? AND linkOrder < ? AND deleteFlag=0';
-			}
-			//moves items around to compensate for the shift
-			$STH = $dbh->prepare($sql);
-			$STH->execute($data);
-			//update the active hyperlink with the new value
-			$data = array($js->hyper[0]->swap, $js->hyper[0]->UPDATE);
-			$STH = $dbh->prepare('UPDATE `Hyperlink` SET linkOrder = ? WHERE id = ?');
-			$STH->execute($data);*/
 	$("#delete_hyper").prop('disabled', true);
 	$('#context').hide();
 	resizeLabelWidths('#timer_entry', 'input[type=number]');
@@ -219,21 +205,16 @@ function main() {
 			trigger: 'hover',
 			delay: '200'
 		});
-		//tmp vVv
-		gg = $('#links').children().first();
-		console.log(parseInt($('#links').children().first().css('height')));
-		$('#links').css('height', 3 * parseInt($('#links').children().first().css('height')));//temporarily set height to be 3x
 		$("#timer_hours").focus();
 		/*********************************************************************/
 		/*$("#myModal").one('shown.bs.modal', function () {
 			resizeLabelWidths('#hyper_entry', 'input');
 		});*/
-		
 		$("#hyper_modal").click(function () {$('#context').hide();});
 		$("#add_hyper").click(insertHyper);
 		$("#refresh_hyper").click(getHyper);
 		$("#delete_hyper").click(deleteHyper);
-		$("#links").on('click', 'div', selectHyper);//need to delegate because the links are dynamically created
+		$("#links").on('click', 'div', clickHyper);//need to delegate because the links are dynamically created
 		//hyperlink context menu
 		if ($('#links').addEventListener) {
 			$('#links').addEventListener('contextmenu', function(e) {
@@ -928,6 +909,16 @@ function selectHyper(event) {
 	}*/
 }
 
+//find out if the close element was clicked, then find the id of the div to place the class into and call delete function
+function clickHyper(event) {
+	if (event.target.tagName.toUpperCase() === 'SPAN') {
+		$(event.target).parent().parent().addClass("activeLink");
+		deleteHyper();
+	}
+	else
+		gg = event;
+}
+
 //
 function getHyper() {
 	$('#context').hide();
@@ -942,7 +933,7 @@ function getHyper() {
 				var obj = JSON.parse(String(data));
 				if ($.isPlainObject(obj)) {
 					for(var i = 0; i < obj.hyper.length; i++)
-						hyper[i] = new Hyper(obj.hyper[i]['id'], obj.hyper[i]['name'], obj.hyper[i]['description'], obj.hyper[i]['address'], obj.hyper[i]['image'], obj.hyper[i]['order']);
+						hyper[i] = new Hyper(obj.hyper[i]['id'], obj.hyper[i]['name'], obj.hyper[i]['description'], obj.hyper[i]['address'], obj.hyper[i]['image'], +obj.hyper[i]['linkOrder']);
 				}
 				else
 					console.log("Data passed was not valid JSON");
@@ -1009,13 +1000,22 @@ function insertHyper() {
 }
 
 //
-function modifyHyper(id, linkOrder, swap, active) {
+/*
+test cases
+//12345; drag 4 onto 2; 14235; inc >= 2 and < 4, set 4 = 2's linkOrder
+//12345; drag 2 onto 5; 13425; sub > 2 and < 5 , set 2 = 5's linkOrder - 1***
+*/
+function modifyHyper(id, linkOrder, active, swap) {
+	//the linkOrder at active id and swap id....
+	/*active = hyper[findOwner(active)].linkOrder;
+	swap = hyper[findOwner(swap)].linkOrder;*/
 	if (!testLocal) {
-		var obj = JSON.parse('{"hyper":[{"UPDATE":"","swap":"","active":""}]}');
-		obj.hyper[0]['UPDATE'] = linkOrder;//id
-		//obj.hyper[0]['linkOrder'] = linkOrder;
-		obj.hyper[0]['swap'] = swap;
+		var obj = JSON.parse('{"hyper":[{"UPDATE":"","active":"","swap":""}]}');
+		obj.hyper[0]['UPDATE'] = id;
+		//obj.hyper[0]['linkOrder'] = linkOrder;//seems unneeded
 		obj.hyper[0]['active'] = active;
+		obj.hyper[0]['swap'] = swap;
+		console.log('obj', obj);
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
 			data : escape(JSON.stringify(obj)),
