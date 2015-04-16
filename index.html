@@ -10,7 +10,15 @@
 	<body>
 		
 		<!--hyperlinks-->
-		<div id="links" class="container-fluid">
+		<div id="links" class="container-fluid"><!--
+			<div id="hyper1" class="col-md-2 drag" draggable=true>
+				<button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<a href="web address">
+					<h5 class="text-center">name</h5>
+					<img class="centered center-block" src="image URL" draggable=false />
+					<p class="text-center">description</p>
+				</a>
+			</div>
 			<!--dynamically built-->
 		</div>
 		
@@ -102,10 +110,10 @@
 			<div class="form-group">
 				<button type="button" id="add_timer" class="btn btn-default" tabindex=4>
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">Add</span>
-				</button>
+				</button><!--
 				<button type="button" id="refresh_timer" class="btn btn-default" tabindex=5>
-					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span><!--this button should be unnecessary when server situation is resolved-->
-				</button>
+					<span class="glyphicon glyphicon-refresh" aria-hidden="true">Refresh</span>
+				</button>-->
 				<button type="button" id="delete_timer" class="btn btn-default" tabindex=6 disabled="true">
 					<span class="glyphicon glyphicon-trash" aria-hidden="true">Remove</span>
 				</button>
@@ -129,7 +137,11 @@
 				<thead>
 					<tr><th>Time</th><th>Remaining</th></tr>
 				</thead>
-				<tbody id="table_body">
+				<tbody id="table_body"><!--
+					<tr>
+						<td>12:00:00</td>
+						<td>01:23:45</td>
+					</tr>
 					<!--dynamically built-->
 				</tbody>
 			</table>
