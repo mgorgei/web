@@ -21,6 +21,12 @@ else {
 }
 $js = json_decode(rawurldecode($data));
 
+/*SELECT statements won't show old data after an update anymore
+  but I am curious if this will bother the error headers...
+  or that there is a better place to put these
+*/
+header('Pragma: no-cache', true);
+header("Cache-Control: no-store, no-cache, must-revalidate", true);
 /*****************************************************************************/
 //deal with timers
 if (isset($js->timers)) {
@@ -92,24 +98,24 @@ elseif (isset($js->hyper)) {
 			exit();
 		}
 	}
-	//PUT UPDATE //{"hyper":[{"UPDATE":"empty"}]}
+	//PUT UPDATE //{"hyper":[{"UPDATE":"id"}]}
 	elseif ($_SERVER["REQUEST_METHOD"] === 'PUT' and isset($js->hyper[0]->UPDATE)) {
-		if (is_numeric($js->hyper[0]->UPDATE) and true) {//presume XSS-checking is going on for now...
-			//the active item is being placed at a position more than itself
-			$data = array($js->hyper[0]->active, $js->hyper[0]->swap);
-			if ($js->hyper[0]->active < $js->hyper[0]->swap)
+		if (is_numeric($js->hyper[0]->UPDATE) and is_numeric($js->hyper[0]->dragged) and is_numeric($js->hyper[0]->dropped) and true) {//presume XSS-checking is going on for now...
+			//the dragged item is being placed at a position more than itself
+			$data = array($js->hyper[0]->dragged, $js->hyper[0]->dropped);
+			if ($js->hyper[0]->dragged < $js->hyper[0]->dropped)
 				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder - 1 WHERE linkOrder > ? AND linkOrder < ? AND deleteFlag=0';
-			//the active item is being placed at a position less than itself
+			//the dragged item is being placed at a position less than itself
 			else
 				$sql = 'UPDATE `Hyperlink` SET linkOrder = linkOrder + 1 WHERE linkOrder < ? AND linkOrder >= ? AND deleteFlag=0';
 			//moves items around to compensate for the shift
 			$STH = $dbh->prepare($sql);
 			$STH->execute($data);
-			//update the active hyperlink with the new value
-			if ($js->hyper[0]->active < $js->hyper[0]->swap)
-				$data = array($js->hyper[0]->swap - 1, $js->hyper[0]->UPDATE);
+			//update the dragged hyperlink with the new value
+			if ($js->hyper[0]->dragged < $js->hyper[0]->dropped)
+				$data = array($js->hyper[0]->dropped - 1, $js->hyper[0]->UPDATE);
 			else
-				$data = array($js->hyper[0]->swap, $js->hyper[0]->UPDATE);
+				$data = array($js->hyper[0]->dropped, $js->hyper[0]->UPDATE);
 			$STH = $dbh->prepare('UPDATE `Hyperlink` SET linkOrder = ? WHERE id = ?');
 			$STH->execute($data);
 			exit();
@@ -130,7 +136,6 @@ elseif (isset($js->hyper)) {
 	}
 }
 
-//will closing the session help eliminate double refresh = real problem?
 //did not recognize the JSON given
 else {
 	header("HTTP/1.1 402 Payment required");
