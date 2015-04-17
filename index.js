@@ -106,9 +106,9 @@ function main() {
 			$('label[for=' + $(this).prop('id') + ']', jq).css('width', maxLabelWidth);
 		});
 	}
-	function dragEvents() { //
+	function dragEvents() { //corral all the drag events into one function called in main
 		$('#links').on('dragstart', function (e) { 
-			$("#links > *").removeClass("dragStart");
+			$("#links > *").removeClass("dragStart over");
 			$(e.target).addClass('dragStart');
 			drag.start = e.target.id;
 		});
@@ -116,35 +116,46 @@ function main() {
 		$('#links').on('dragenter', function (e) {
 			if (e.target.id === 'links') {
 				drag.current = e.target.id;
-				drag.owner = 'links';
 			}
 			else if (e.target.id.slice(0,5) === 'hyper') {
 				drag.current = e.target.id;
-				drag.owner = 'div';
 			}
 			else {
 				drag.current = $(e.target).parents('div').first()[0].id;
-				drag.owner = 'child';
 			}
-			if (drag.start != drag.current) {
-				//add class the signifies this element is selected
+			//add class that signifies this element is hovered over to make accurate drops
+			if (drag.start != drag.current && drag.current.slice(0,5) === 'hyper' && drag.current != drag.last) {
+				/*$("#links > *").removeClass('over');
+				$('#' + drag.current).addClass('over');*/
+				$('#' + drag.start).insertBefore($('#' + drag.current));
 			}
+			else if (drag.current === 'links')
+				//$("#links > *").removeClass('over');
+				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left')) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top')))
+					$('#' + drag.start).insertBefore($('#links').children().first());
+				else
+					$('#' + drag.start).insertAfter($('#links').children().last());
+			drag.last = drag.current;
 		});
 		
 		$('#links').on('dragleave', function (e) {
 			//may be able to skip dragleave by detecting a change in entry...
 		});
 		
+		$('#links').on('dragover', function (e) {
+			//console.log (e.originalEvent.pageX, e.originalEvent.pageY)
+		});
+		
 		$('#links').on('dragend', function (e) {//should be a way to refactor this mess...
-			$("#links > *").removeClass("dragStart");
+			$("#links > *").removeClass('dragStart over');
 			var index = findOwner(drag.start);
-			if (drag.owner === 'links') {
+			if (drag.current === 'links') {
 				//if the drag is placed within the left / top padding, drop as the first object in the list
 				console.log(e.originalEvent.pageX, e.originalEvent.pageY);
 				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left')) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top'))) {
 					if (hyper[index].linkOrder != 1) {//don't move if the element is already first
 						modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, 1);
-						$('#' + drag.start).insertBefore($('#links').children().first());
+						//$('#' + drag.start).insertBefore($('#links').children().first());
 						for (var i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder < hyper[index].linkOrder)
 								hyper[i].linkOrder = hyper[i].linkOrder + 1;
@@ -154,7 +165,7 @@ function main() {
 				else {//drop as last object in the list
 					if (hyper[index].linkOrder != hyper.length) {
 						modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper.length + 1);
-						$('#' + drag.start).insertAfter($('#links').children().last());
+						//$('#' + drag.start).insertAfter($('#links').children().last());
 						for (var i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder > hyper[index].linkOrder)
 								hyper[i].linkOrder = hyper[i].linkOrder - 1;
@@ -165,26 +176,27 @@ function main() {
 			else {
 				if (drag.current !== drag.start) {
 				//divide in two situations between half the width of the div?
-					$('#' + drag.start).insertBefore($('#' + drag.current));
-					var blah = findOwner(drag.current);
-					console.log('blah', blah, drag.current);
-					var tmp = hyper[blah].linkOrder;
-					//12345; drag 4 onto 2; 14235; inc >= 2 and < 4, set 4 = 2's linkOrder
+					//$('#' + drag.start).insertBefore($('#' + drag.current));
+					var dragged = findOwner(drag.current);
+					var tmp = hyper[dragged].linkOrder;
 					modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper[findOwner(drag.current)].linkOrder);
-					if (hyper[index].linkOrder > hyper[blah].linkOrder){
+					//dragging to a lower element
+					if (hyper[index].linkOrder > hyper[dragged].linkOrder){
 						for (var i = 0; i < hyper.length; i++)
-							if (hyper[i].linkOrder < hyper[index].linkOrder && hyper[i].linkOrder >= hyper[blah].linkOrder)
+							if (hyper[i].linkOrder < hyper[index].linkOrder && hyper[i].linkOrder >= hyper[dragged].linkOrder)
 								hyper[i].linkOrder = hyper[i].linkOrder + 1;
 						hyper[index].linkOrder = tmp;
 					}
-					//12345; drag 2 onto 5; 13425; sub > 2 and < 5 , set 2 = 5's linkOrder - 1***
+					//dragging to a higher element
 					else {
 						for (var i = 0; i < hyper.length; i++)
-							if (hyper[i].linkOrder > hyper[index].linkOrder && hyper[i].linkOrder < hyper[blah].linkOrder)
+							if (hyper[i].linkOrder > hyper[index].linkOrder && hyper[i].linkOrder < hyper[dragged].linkOrder)
 								hyper[i].linkOrder = hyper[i].linkOrder - 1;
 						hyper[index].linkOrder = tmp - 1;
 					}
 				}
+			//find some kind of transition animation for moving the dragged item
+			//$('#' + drag.start).addClass('dragEnd');
 			drag.clear();
 			}
 		});
@@ -226,11 +238,12 @@ function main() {
 			}, false);
 		} else {
 			$('body').on('contextmenu', '#links', function(e) {
-				$('#context').show();
+				$("#myModal").modal('show');//just show the modal dialogue since all the other context options are woven into the html interactions
+				//$('#context').show();
 				window.event.returnValue = false;
-				var x = e.pageX;
+				/*var x = e.pageX;
 				var y = e.pageY;
-				$("#context").css({left: x, top: y});
+				$("#context").css({left: x, top: y});*/
 			});
 		}
 		//dismiss context menu on any left-click outside
@@ -649,8 +662,8 @@ function addTimerDOM(i) {
 	$('#table_body').append("<tr><td>" + timers[i].time.toLocaleTimeString() + "</td><td>" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
 }
 
-//
-function deleteHyperDOM(index) {
+//remove DOM and timer object associated with the index parameter
+function deleteTimerDOM(index) {
 	timers.splice(index, 1);
 	$('#table_body tr')[index].remove();
 }
@@ -779,7 +792,7 @@ function deleteTimer() {
 		}
 		//remove the affected table row by animation
 		$("#delete_timer").prop('disabled', true);
-		$(".timer_table_selected").fadeOut(200, function () {deleteHyperDOM(index);});
+		$(".timer_table_selected").fadeOut(200, function () {deleteTimerDOM(index);});
 	}
 	else
 		alert("Nothing selected!");
@@ -878,17 +891,17 @@ function buildHyperDOM() {
 		addHyperDOM(i);
 }
 
-//
+//add recent hyper to the DOM
 function addHyperDOM(i) {
 	$("#links").append("<div id=\"hyper" + hyper[i].id + "\" class=\"col-md-2 drag\" draggable=true>" +
-	"<button type=\"button\" class=\"close\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>" + //maybe
-	"<a hrefXXXXX=\"" + hyper[i].address + "\">" +
+	"<button type=\"button\" class=\"close\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>" + 
+	"<a href=\"" + hyper[i].address + "\">" + //hrefXXXXX
 	"<h5 class=\"text-center\">" + hyper[i].name + "</h5>" + 
 	"<img class=\"centered center-block\" src=\"" + hyper[i].image + "\" draggable=false />" + 
-	"<p class=\"text-center\">" + hyper[i].description + "</p></a></div>");
+	"<p class=\"text-center\" hidden>" + hyper[i].description + "</p></a></div>");
 }
 
-//
+//remove the DOM and hyperlink object associated with the index parameter
 function deleteHyperDOM(index) {
 	hyper.splice(index, 1);
 	$('#hyper' + index).remove();
@@ -935,7 +948,7 @@ function getHyper() {
 		});
 	}
 	else {
-		for (var i = 0; i < 5; i++)
+		for (var i = 0; i < 15; i++)
 			hyper[i] = new Hyper(i+1, 'name'+(i+1), 'description', 'address', 'images/google.svg', i+1);
 		buildHyperDOM();
 	}
@@ -1041,6 +1054,6 @@ function deleteHyper() {
 		});
 	}
 	else {
-		deleteHyperDOM(index);
+		$(".activeLink").fadeOut(200, function () {deleteHyperDOM(index);});
 	}
 }
