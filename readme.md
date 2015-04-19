@@ -7,6 +7,7 @@ There did not appear to be an officially supported means of pulling Chrome's syn
 Known issues
 --------
 There is no concept of users in the database(yet?), so any modifications to the page by concurrent users are going to give unexpected results.
+The hyperlink's containing div border area won't allow dragging.
 
 See it live
 ---------
