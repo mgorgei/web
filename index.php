@@ -1,3 +1,25 @@
+<?php
+include 'pwds.php';
+try {
+	$dbh = new PDO($dsn, $username, $password, $options);
+	$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+}
+catch (PDOException $e) {
+	header("HTTP/1.1 402 Payment required");
+	exit();
+}
+//get some basic user information
+$host = 'unset';
+/*if (isset($_SERVER['REMOTE_HOST'])
+	$host = $_SERVER['REMOTE_HOST'];*/
+$referer = 'unset';
+/*if (isset($_SERVER['HTTP_REFERER'])
+	$referer = $_SERVER['HTTP_REFERER'];*/
+$data = array($_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'], $host, $referer);
+$STH = $dbh->prepare('INSERT INTO `Visitors` (`IP`, `agent`, `host`, `referrer`, `method`, `time`) ' .
+					 'VALUES (?, ?, ?, ?, "html", NOW())');
+$STH->execute($data);
+?>
 <!doctype html>
 <html lang="en">
 	<head>
@@ -182,6 +204,6 @@
 		<script src="jscolor/jscolor.js"></script>
 		<script src="jquery-2.1.3.js"></script>
 		<script src="bs/js/bootstrap.js"></script>
-		<script src="index.js"></script>
+		<script src="my.js"></script>
 	</body>
 </html>
