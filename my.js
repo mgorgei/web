@@ -86,8 +86,8 @@ function Drag() {
 	}
 }var drag = new Drag();
 
-//move me later
-function findOwner(index) {//DOM index
+//gives back the index in the hyperlink object relating to the index parameter that is a unique id in the DOM
+function findOwner(index) {
 	for (var i = 0; i < hyper.length; i++) {
 		if (parseInt(index.slice(5)) === parseInt(hyper[i].id))
 			return i;
@@ -230,6 +230,10 @@ function main() {
 		});
 		$("#hyper_modal").click(function () {$('#context').hide();});
 		$("#add_hyper").click(function () {
+			//make sure the web address points somewhere absolute by appending http:// if it cannot find  http://  https://
+			var tmp = $("#hyper_entry > ").find("input[name=hyper_address]").val();
+			if ( tmp.slice(0,7) !== 'http://' && tmp.slice(0,8) !== 'https://')
+				 $("#hyper_entry > ").find("input[name=hyper_address]").val('http://' + tmp);
 			if (modalClick == -1) 
 				insertHyper();
 			else
