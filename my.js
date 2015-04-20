@@ -11,6 +11,7 @@ var alarmDraw = false;//draw empty digits if true
 var testLocal = location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
 var shiftKey = false;//detect when shift is pressed within the input HH:MM:SS fields
 var procTab = false;//save pressing ':' in keydown/keyup event for use in oninput event since type=number doesn't give non-number characters
+var modalClick = -1;//saves id of modified hyperlink
 var lastHH = 0;
 var lastMM = 0;
 var lastSS = 0;
@@ -154,7 +155,7 @@ function main() {
 				console.log(e.originalEvent.pageX, e.originalEvent.pageY);
 				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left')) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top'))) {
 					if (hyper[index].linkOrder != 1) {//don't move if the element is already first
-						modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, 1);
+						modifyHyperOrder(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, 1);
 						//$('#' + drag.start).insertBefore($('#links').children().first());
 						for (var i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder < hyper[index].linkOrder)
@@ -164,7 +165,7 @@ function main() {
 				}
 				else {//drop as last object in the list
 					if (hyper[index].linkOrder != hyper.length) {
-						modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper.length + 1);
+						modifyHyperOrder(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper.length + 1);
 						//$('#' + drag.start).insertAfter($('#links').children().last());
 						for (var i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder > hyper[index].linkOrder)
@@ -179,7 +180,7 @@ function main() {
 					//$('#' + drag.start).insertBefore($('#' + drag.current));
 					var dragged = findOwner(drag.current);
 					var tmp = hyper[dragged].linkOrder;
-					modifyHyper(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper[findOwner(drag.current)].linkOrder);
+					modifyHyperOrder(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper[findOwner(drag.current)].linkOrder);
 					//dragging to a lower element
 					if (hyper[index].linkOrder > hyper[dragged].linkOrder){
 						for (var i = 0; i < hyper.length; i++)
@@ -219,17 +220,24 @@ function main() {
 		});
 		$("#timer_hours").focus();
 		/*********************************************************************/
-		$("#myModal").one('show.bs.modal', function () {
-			//resizeLabelWidths('#hyper_entry', 'input');
+		/*$("#myModal").on('show.bs.modal', function () {
 			//clear the inputs
 			$("#hyper_entry > ").find("input[name=hyper_name]").val('');
 			$("#hyper_entry > ").find("input[name=hyper_address]").val('');
+		});*/
+		$("#myModal").on('shown.bs.modal', function () {
+			$("#hyper_entry > ").find("input[name=hyper_name]").focus();
 		});
 		$("#hyper_modal").click(function () {$('#context').hide();});
-		$("#add_hyper").click(insertHyper);
+		$("#add_hyper").click(function () {
+			if (modalClick == -1) 
+				insertHyper();
+			else
+				modifyHyper(modalClick);
+		});
 		$("#refresh_hyper").click(getHyper);
 		$("#delete_hyper").click(deleteHyper);
-		$("#links").on('click', 'div', clickHyper);//need to delegate because the links are dynamically created
+		$("#links").on('click', 'div', clickHyperClose);//need to delegate because the links are dynamically created
 		//hyperlink context menu
 		if ($('#links').addEventListener) {
 			$('#links').addEventListener('contextmenu', function(e) {
@@ -238,6 +246,24 @@ function main() {
 			}, false);
 		} else {
 			$('body').on('contextmenu', '#links', function(e) {
+				//determine whether a div or links was clicked
+				if ($(e.target).prop('id') === 'links') {
+					modalClick = -1;
+					$('#myModalLabel').text('Enter new hyperlink');
+					$("#hyper_entry > ").find("input[name=hyper_name]").val('');
+					$("#hyper_entry > ").find("input[name=hyper_address]").val('');
+					$('#add_hyper').children().first().text('New');
+				}
+				else {//find which div by traversing up until finding a 'hyper###' id
+					var search = $(e.target);
+					while (search.prop('id').slice(0,5) !== 'hyper')
+						search = search.parent();
+					modalClick = findOwner(search.prop('id'));
+					$('#myModalLabel').text('Modify hyperlink');
+					$("#hyper_entry > ").find("input[name=hyper_name]").val( hyper[modalClick].name );
+					$("#hyper_entry > ").find("input[name=hyper_address]").val( hyper[modalClick].address );
+					$('#add_hyper').children().first().text('Modify');
+				}
 				$("#myModal").modal('show');//just show the modal dialogue since all the other context options are woven into the html interactions
 				//$('#context').show();
 				window.event.returnValue = false;
@@ -247,10 +273,10 @@ function main() {
 			});
 		}
 		//dismiss context menu on any left-click outside
-		$('body').click(function() {
+		/*$('body').click(function() {
 			if ($('#context').is(':visible'))
 				$('#context').hide();
-		});
+		});*/
 		/*********************************************************************/
 		$('#audio').on('loadedmetadata', function () {
 			alarmDelay = Math.floor(4 * this.duration);
@@ -893,12 +919,18 @@ function buildHyperDOM() {
 
 //add recent hyper to the DOM
 function addHyperDOM(i) {
-	$("#links").append("<div id=\"hyper" + hyper[i].id + "\" class=\"col-md-2 drag\" draggable=true>" +
+	$("#links").append("<div id=\"hyper" + hyper[i].id + "\" class=\"col-md-2 col-sm-3 col-xs-6 drag\" draggable=true>" +
 	"<button type=\"button\" class=\"close\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>" + 
-	"<a href=\"" + hyper[i].address + "\">" + //hrefXXXXX
-	"<h5 class=\"text-center\">" + hyper[i].name + "</h5>" + 
+	"<a href=\"" + hyper[i].address + "\" draggable=false >" + 
+	"<h5>" + hyper[i].name + "</h5>" + 
 	"<img class=\"centered center-block\" src=\"" + hyper[i].image + "\" draggable=false />" + 
 	"<p class=\"text-center\" hidden>" + hyper[i].description + "</p></a></div>");
+}
+
+//modify hyper DOM
+function modifyHyperDOM() {
+	$('#hyper' + hyper[modalClick].id + ' > a').prop('href', hyper[modalClick].address);
+	$('#hyper' + hyper[modalClick].id + ' > > h5').text(hyper[modalClick].name);
 }
 
 //remove the DOM and hyperlink object associated with the index parameter
@@ -910,13 +942,13 @@ function deleteHyperDOM(index) {
 /*****************************************************************************/
 
 //find out if the close element was clicked, then find the id of the div to place the class into and call delete function
-function clickHyper(event) {
+function clickHyperClose(event) {
 	if (event.target.tagName.toUpperCase() === 'SPAN') {
 		$(event.target).parent().parent().addClass("activeLink");
 		deleteHyper();
 	}
-	else
-		gg = event;
+	/*else
+		gg = event;*/
 }
 
 //clear all hyperLinks and grab everything from the server
@@ -949,9 +981,39 @@ function getHyper() {
 	}
 	else {
 		for (var i = 0; i < 15; i++)
-			hyper[i] = new Hyper(i+1, 'name'+(i+1), 'description', 'address', 'images/google.svg', i+1);
+			hyper[i] = new Hyper(i+1, 'name'+(i+1), 'description', 'http://www.google.com', 'images/google.svg', i+1);
 		buildHyperDOM();
 	}
+}
+
+//
+function modifyHyper() {
+	var tmp = $("#hyper_entry > ");
+	hyper[modalClick].name = tmp.find("input[name=hyper_name]").val();
+	hyper[modalClick].address = tmp.find("input[name=hyper_address]").val();
+	if (!testLocal) {
+		var obj = JSON.parse('{"hyper":[{"UPDATE":"id", "name":"", "address":""}]}');
+		obj.hyper[0]['UPDATE'] = hyper[modalClick].id;
+		obj.hyper[0]['name'] = hyper[modalClick].name;
+		obj.hyper[0]['address'] = hyper[modalClick].address;
+		$.ajax({
+			url : window.location.pathname + "ajax.php",
+			data : escape(JSON.stringify(obj)),
+			type : "PUT",
+			success: function(data) {
+				console.log("success", data);
+				modifyHyperDOM();
+			},
+			error: function() {
+				console.log("error");
+			},
+			complete: function() {
+				console.log("complete");
+			}
+		});
+	}
+	else
+		modifyHyperDOM();
 }
 
 //insert a new record based on user input on the modal form
@@ -1001,7 +1063,7 @@ function insertHyper() {
 /*DOM / object swapping takes place in the drag events
   swap the dragged linkOrder value with the dropped linkOrder value
 */
-function modifyHyper(activeID, linkOrder, dragged, dropped) {
+function modifyHyperOrder(activeID, linkOrder, dragged, dropped) {
 	if (!testLocal) {
 		var obj = JSON.parse('{"hyper":[{"UPDATE":"","dragged":"","dropped":""}]}');
 		obj.hyper[0]['UPDATE'] = activeID;
