@@ -113,33 +113,47 @@ elseif (isset($js->hyper)) {
 			exit();
 		}
 	}
-	//PUT UPDATE //{"hyper":[{"UPDATE":"id"}]}
+	//PUT UPDATE //{"hyper":[{"UPDATE":"id"}]}//has two paths now...
 	elseif ($_SERVER["REQUEST_METHOD"] === 'PUT' and isset($js->hyper[0]->UPDATE)) {
-		if (is_numeric($js->hyper[0]->UPDATE) and is_numeric($js->hyper[0]->dragged) and is_numeric($js->hyper[0]->dropped) and true) {//presume XSS-checking is going on for now...
-			//the dragged item is being placed at a position more than itself
-			$data = array($js->hyper[0]->dragged, $js->hyper[0]->dropped);
-			if ($js->hyper[0]->dragged < $js->hyper[0]->dropped)
-				$sql = 'UPDATE `Hyperlink` ' .
-					   'SET linkOrder = linkOrder - 1 ' .
-					   'WHERE linkOrder > ? AND linkOrder < ? AND deleteFlag=0';
-			//the dragged item is being placed at a position less than itself
-			else
-				$sql = 'UPDATE `Hyperlink` ' .
-					   'SET linkOrder = linkOrder + 1 ' .
-					   'WHERE linkOrder < ? AND linkOrder >= ? AND deleteFlag=0';
-			//moves items around to compensate for the shift
-			$STH = $dbh->prepare($sql);
-			$STH->execute($data);
-			//update the dragged hyperlink with the new value
-			if ($js->hyper[0]->dragged < $js->hyper[0]->dropped)
-				$data = array($js->hyper[0]->dropped - 1, $js->hyper[0]->UPDATE);
-			else
-				$data = array($js->hyper[0]->dropped, $js->hyper[0]->UPDATE);
-			$STH = $dbh->prepare('UPDATE `Hyperlink` ' .
-								 'SET linkOrder = ? ' .
-								 'WHERE id = ?');
-			$STH->execute($data);
-			exit();
+		//dragging linkOrder update
+		if (is_numeric($js->hyper[0]->UPDATE) and isset($js->hyper[0]->dragged)) {
+			if (is_numeric($js->hyper[0]->dragged) and is_numeric($js->hyper[0]->dropped) and true) {//presume XSS-checking is going on for now...
+				//the dragged item is being placed at a position more than itself
+				$data = array($js->hyper[0]->dragged, $js->hyper[0]->dropped);
+				if ($js->hyper[0]->dragged < $js->hyper[0]->dropped)
+					$sql = 'UPDATE `Hyperlink` ' .
+						   'SET linkOrder = linkOrder - 1 ' .
+						   'WHERE linkOrder > ? AND linkOrder < ? AND deleteFlag=0';
+				//the dragged item is being placed at a position less than itself
+				else
+					$sql = 'UPDATE `Hyperlink` ' .
+						   'SET linkOrder = linkOrder + 1 ' .
+						   'WHERE linkOrder < ? AND linkOrder >= ? AND deleteFlag=0';
+				//moves items around to compensate for the shift
+				$STH = $dbh->prepare($sql);
+				$STH->execute($data);
+				//update the dragged hyperlink with the new value
+				if ($js->hyper[0]->dragged < $js->hyper[0]->dropped)
+					$data = array($js->hyper[0]->dropped - 1, $js->hyper[0]->UPDATE);
+				else
+					$data = array($js->hyper[0]->dropped, $js->hyper[0]->UPDATE);
+				$STH = $dbh->prepare('UPDATE `Hyperlink` ' .
+									 'SET linkOrder = ? ' .
+									 'WHERE id = ?');
+				$STH->execute($data);
+				exit();
+			}
+		}
+		//modal update of name and address
+		else {
+			if (true) {//presume XSS-checking is going on for now...
+				$data = array($js->hyper[0]->name, $js->hyper[0]->address, $js->hyper[0]->UPDATE);
+				$STH = $dbh->prepare('UPDATE `Hyperlink` ' .
+									 'SET name = ?, address = ? ' .
+									 'WHERE id = ?');
+				$STH->execute($data);
+				exit();
+			}
 		}
 	}
 	//DELETE DELETE //{"hyper":[{"DELETE":"id"}]}
