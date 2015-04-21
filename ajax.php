@@ -1,5 +1,6 @@
 <?php
-include 'pwds.php';
+include 'pwds.php';//variables for passwords and keys that need to be hidden from the public
+include 'p2i.php';//function to 
 /*connect to the MySQL database on the server.  Respond based on the post 
   request type, the first object's name, and the first key of the expected JSON
   object.  
@@ -108,8 +109,17 @@ elseif (isset($js->hyper)) {
 			//get the last inserted auto increment id
 			$sql = 'SELECT MAX(id) ' .
 				   'FROM `Hyperlink`';
-			$out = $dbh->query($sql)->fetch()['MAX(id)'];
-			echo json_encode( array('hyper' => array(array('id' => $out ))));
+			$id = $dbh->query($sql)->fetch()['MAX(id)'];
+
+			call_p2i($js->hyper[0]->address, $id);//will know if this passes by having the image on the server
+			//when request returns, rewrite the `image` field so that a proper preview can happen
+			$data = array($id, $id);
+			$STH = $dbh->prepare('UPDATE `Hyperlink` ' .
+								 'SET image = ? ' .
+								 'WHERE id = ?');
+			$STH->execute($data);
+		
+			echo json_encode( array('hyper' => array(array('id' => $id ))));
 			exit();
 		}
 	}
