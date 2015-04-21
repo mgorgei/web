@@ -63,7 +63,10 @@ function Hyper(id, name, description, address, image, linkOrder) {
 	this.name = name;
 	this.description = description;
 	this.address = address;
-	this.image = image;
+	if (image !== 'images/google.svg')
+		this.image = 'http://mgorgei.x10host.com/scaps/' + image + '.jpg';//modify to use parent + relative or a host variable
+	else 
+		this.image = image;
 	this.linkOrder = linkOrder;
 }
 var hyper = [];
@@ -231,8 +234,8 @@ function main() {
 		$("#hyper_modal").click(function () {$('#context').hide();});
 		$("#add_hyper").click(function () {
 			//make sure the web address points somewhere absolute by appending http:// if it cannot find  http://  https://
-			var tmp = $("#hyper_entry > ").find("input[name=hyper_address]").val();
-			if ( tmp.slice(0,7) !== 'http://' && tmp.slice(0,8) !== 'https://')
+			var tmp = $("#hyper_entry > ").find("input[name=hyper_address]").val().toLowerCase();
+			if (tmp.slice(0,7) !== 'http://')
 				 $("#hyper_entry > ").find("input[name=hyper_address]").val('http://' + tmp);
 			if (modalClick == -1) 
 				insertHyper();
@@ -925,9 +928,9 @@ function buildHyperDOM() {
 function addHyperDOM(i) {
 	$("#links").append("<div id=\"hyper" + hyper[i].id + "\" class=\"col-md-2 col-sm-3 col-xs-6 drag\" draggable=true>" +
 	"<button type=\"button\" class=\"close\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>" + 
-	"<a href=\"" + hyper[i].address + "\" draggable=false >" + 
+	"<a href=\"" + hyper[i].address + "\" draggable=false target=\"_blank\">" + 
 	"<h5>" + hyper[i].name + "</h5>" + 
-	"<img class=\"centered center-block\" src=\"" + hyper[i].image + "\" draggable=false />" + 
+	"<img class=\"centered center-block\" src=\"" + hyper[i].image + "\" draggable=false />" +
 	"<p class=\"text-center\" hidden>" + hyper[i].description + "</p></a></div>");
 }
 
@@ -1046,8 +1049,10 @@ function insertHyper() {
 			success: function(data) {
 				console.log("success", data);
 				obj = JSON.parse(String(data));
-				if ($.isPlainObject(obj))
+				if ($.isPlainObject(obj)) {
 					hyper[cur].id = obj.hyper[0]['id'];//set the id to the one on the server so that it can be interacted with
+					hyper[cur].image = 'http://mgorgei.x10host.com/scaps/' + obj.hyper[0]['id'] + '.jpg';//need to find a way to specify parent directory in href
+				}
 				else
 					console.log("Data passed was not valid JSON or received no data");
 				addHyperDOM(cur);
