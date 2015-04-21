@@ -12,13 +12,17 @@ body {
 	background-color: #CCC;
 	cursor: move;
 	border-radius: 15px;
-	border: 3px solid rgba(54, 210, 72, 0);
+	border: 3px solid rgba(207, 207, 207, 0);
 	transition: transform 0.2s ease-out;
 	transition: opacity 0.2s ease-out;
 }
 
-#links div.over{
+#links div:hover{
 	border: 3px dashed #000;
+}
+
+#links h5{
+	/*background-color: #FFF;*/
 }
 
 .dragStart {
@@ -69,8 +73,8 @@ body {
 	margin: 0 auto;
 }
 img.centered {
-	width: 100px;
-	height: 100px;
+	width: 150px;
+	height: 150px;
 }
 p.center {
 	display: none;
