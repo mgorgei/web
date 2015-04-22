@@ -66,6 +66,7 @@ function call_p2i($url, $id)
 					$location = $_SERVER['DOCUMENT_ROOT'] . '/scaps/' . $id . '.' . $img_format;
 					file_put_contents($location, $remote_shot);
                     $loop_flag = FALSE;
+					usleep(1000000);//one second wait
                     break;
                 case "processing":
                 default:
@@ -106,67 +107,4 @@ function connect($url, $para)
     $data = curl_exec($ch);
     curl_close($ch);
     return $data;
-}
-
-function call_p2i_with_callback()
-{
-    global $apikey, $api_url;
-    // URL can be those formats: http://www.google.com https://google.com google.com and www.google.com
-    $url = "http://www.google.com";
-    // 0 - iPhone4, 1 - iPhone5, 2 - Android, 3 - WinPhone, 4 - iPad, 5 - Android Pad, 6 - Desktop
-    $device = 0;
-
-    // you can pass us any parameters you like. We will pass it back.
-    // Please make sure http://your_server_domain/api_callback can handle our call
-    $callback_url = "http://your_server_domain/api_callback?image_id=your_unique_image_id_here";
-    $para = array(
-                "p2i_url" => $url,
-                "p2i_key" => $apikey,
-                "p2i_device" => $device
-            );
-    $response = connect($api_url, $para);
-
-    if (empty($response)) {
-        // Do whatever you think is right to handle the exception.
-    } else {
-        $json_data = json_decode($response);
-        if (empty($json_data->status)) {
-            // api error do something
-            echo "api error";
-        }else
-        {
-            //do anything
-            echo $json_data->status;
-        }
-    }
-
-}
-
-// This function demo how to handle the callback request
-function api_callback()
-{
-    if (! empty($_REQUEST["image_id"])) {
-        // do anything you want about the unique image id. We suggest to use it to identify which url you send to us since you can send 1,000 at one time.
-    }
-
-    if (! empty($_POST["result"])) {
-        $post_data = $_POST["result"];
-        $json_data = json_decode($post_data);
-        switch ($json_data->status) {
-            case "error":
-                // do something with error
-                echo $json_data->errno . " " . $json_data->msg;
-                break;
-            case "finished":
-                // do something with finished
-                echo $json_data->image_url;
-                // Or you can download the image from our server
-                break;
-            default:
-                break;
-        }
-    } else {
-        // Do whatever you think is right to handle the exception.
-        echo "Error: Empty";
-    }
 }
