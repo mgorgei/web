@@ -162,6 +162,8 @@ elseif (isset($js->hyper)) {
 									 'SET name = ?, address = ? ' .
 									 'WHERE id = ?');
 				$STH->execute($data);
+				if ($js->hyper[0]->modified)
+					call_p2i($js->hyper[0]->address, $js->hyper[0]->UPDATE);//will know if this passes by having a modified data changed for the image on the server
 				exit();
 			}
 		}
