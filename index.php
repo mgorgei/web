@@ -1,5 +1,7 @@
-<?php
+<!--<?php
 include 'pwds.php';
+header("Cache-Control: no-cache, private, no-store, max-age=0, must-revalidate"); //HTTP 1.1
+header("Pragma: no-cache"); //HTTP 1.0
 try {
 	$dbh = new PDO($dsn, $username, $password, $options);
 	$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -10,27 +12,31 @@ catch (PDOException $e) {
 }
 //get some basic user information
 $host = 'unset';
-/*if (isset($_SERVER['REMOTE_HOST'])
-	$host = $_SERVER['REMOTE_HOST'];*/
 $referer = 'unset';
-/*if (isset($_SERVER['HTTP_REFERER'])
-	$referer = $_SERVER['HTTP_REFERER'];*/
 $data = array($_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'], $host, $referer);
 $STH = $dbh->prepare('INSERT INTO `Visitors` (`IP`, `agent`, `host`, `referrer`, `method`, `time`) ' .
 					 'VALUES (?, ?, ?, ?, "html", NOW())');
 $STH->execute($data);
-?>
+?>-->
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
+		<!--caching control-->
+		<meta http-equiv="cache-control" content="max-age=0" />
+		<meta http-equiv="cache-control" content="no-cache" />
+		<meta http-equiv="cache-control" content="no-store" />
+		<meta http-equiv="cache-control" content="private" />
+		<meta http-equiv="cache-control" content="must-revalidate" />
+		<meta http-equiv="expires" content="0" />
+		<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+		<meta http-equiv="pragma" content="no-cache" />
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>New Tab()</title>
 		<link rel="stylesheet" href="bs/css/bootstrap.min.css">
 		<link rel="stylesheet" href="index.css">
 	</head>
 	<body>
-		
 		<!--hyperlinks-->
 		<div id="links" class="container-fluid"><!--
 			<div id="hyper1" class="col-md-2 drag" draggable=true>
@@ -42,13 +48,6 @@ $STH->execute($data);
 				</a>
 			</div>
 			<!--dynamically built-->
-		</div>
-		
-		<!--context menu-->
-		<div id="context" hidden>
-			<option id="hyper_modal" data-toggle="modal" data-target="#myModal">New Hyperlink</option>
-			<option id="refresh_hyper">Refresh</option>
-			<option id="delete_hyper">Delete Selected</option>
 		</div>
 
 		<!--modal-->
