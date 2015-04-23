@@ -111,7 +111,11 @@ function main() {
 		});
 	}
 	function dragEvents() { //corral all the drag events into one function called in main
-		$('#links').on('dragstart', function (e) { 
+		$('#links').on('dragstart', function (e) {
+			if (e.target.id.slice(0,5) !== 'hyper') {
+				e.preventDefault();
+				return false;
+			}
 			$("#links > *").removeClass("dragStart over");
 			$(e.target).addClass('dragStart');
 			drag.start = e.target.id;
@@ -208,19 +212,32 @@ function main() {
 		});
 		$("#timer_hours").focus();
 		/*********************************************************************/
+		$("#myModal").on('show.bs.modal', function () {
+			$("#hyper_entry input").removeClass('modalEmpty');
+		});
 		$("#myModal").on('shown.bs.modal', function () {
 			$("#hyper_entry > ").find("input[name=hyper_name]").focus();
 		});
 		$("#hyper_modal").click(function () {$('#context').hide();});
 		$("#add_hyper").click(function () {
 			//make sure the web address points somewhere absolute by appending http:// if it cannot find  http://  https://
-			var tmp = $("#hyper_entry > ").find("input[name=hyper_address]").val().toLowerCase();
-			if (tmp.slice(0,7) !== 'http://')
+			var tmp = $("#hyper_entry > ").find("input[name=hyper_address]").val();
+			//check if either field is empty, mark them by a class
+			if (! tmp)
+				$("#hyper_entry > ").find("input[name=hyper_address]").addClass('modalEmpty');
+			if (! $("#hyper_entry > ").find("input[name=hyper_name]").val())
+				$("#hyper_entry > ").find("input[name=hyper_name]").addClass('modalEmpty');
+			if ($("#hyper_entry input").hasClass('modalEmpty'))
+				return;
+			//accepted
+			if (tmp.toLowerCase().slice(0,7) !== 'http://')
 				 $("#hyper_entry > ").find("input[name=hyper_address]").val('http://' + tmp);
 			if (glbl.modalClick == -1) 
 				insertHyper();
 			else
 				modifyHyper(glbl.modalClick);
+			//dismiss modal
+			$('#myModal').modal('hide')
 		});
 		$("#refresh_hyper").click(getHyper);
 		$("#delete_hyper").click(deleteHyper);
@@ -976,7 +993,7 @@ function modifyHyper() {
 	hyper[glbl.modalClick].address = tmp.find("input[name=hyper_address]").val();
 	if (!glbl.testLocal) {
 		//show the loading image indicating something is going on
-		$('#hyper' + hyper[glbl.modalClick].id + ' > > img').attr('src', window.location.origin + '/images/Loading4.gif');
+		$('#hyper' + hyper[glbl.modalClick].id + ' > > img').attr('src', window.location.origin + '/images/loading.svg');
 		var obj = JSON.parse('{"hyper":[{"UPDATE":"id", "name":"", "address":"", "modified":""}]}');
 		obj.hyper[0]['UPDATE'] = hyper[glbl.modalClick].id;
 		obj.hyper[0]['name'] = hyper[glbl.modalClick].name;
@@ -991,8 +1008,8 @@ function modifyHyper() {
 				if (modifiedImage) {
 					console.log('image was modified');
 					//try to un-cache the image
-					//should check for existence since a long time has passed
-					$('#hyper' + hyper[glbl.modalClick].id + ' > > img').attr('src', scapLocation(hyper[glbl.modalClick].id) + '#' + new Date().getTime());
+					if (true) //should check for existence since a long time has passed
+						$('#hyper' + hyper[glbl.modalClick].id + ' > > img').attr('src', scapLocation(hyper[glbl.modalClick].id) + '#' + new Date().getTime());
 				}
 				modifyHyperDOM();
 			},
@@ -1008,12 +1025,13 @@ function modifyHyper() {
 		modifyHyperDOM();
 }
 
+//needs to be broken down
 //insert a new record based on user input on the modal form
 function insertHyper() {
 	var tmp = $("#hyper_entry > ");
 	var r_value = 100000 + Math.floor(Math.random() * 1000000);//temp value, hopefully nevers collides for offline
 	if (!glbl.testLocal)
-		var t_img = window.location.origin + '/images/Loading4.gif';
+		var t_img = window.location.origin + '/images/loading.svg';
 	else
 		t_img = tmp.find("input[name=hyper_image]").val();
 	hyper[hyper.length] = new Hyper(
@@ -1043,8 +1061,20 @@ function insertHyper() {
 				if ($.isPlainObject(obj)) {
 					hyper[cur].id = obj.hyper[0]['id'];//set the id to the one on the server so that it can be interacted with
 					$('#hyper' + r_value).prop('id', 'hyper' + hyper[cur].id);//this is messy
-					hyper[cur].image = scapLocation(obj.hyper[0]['id']);
-					$('#hyper' + hyper[cur].id + ' > > img').attr('src', hyper[cur].image + '#' + new Date().getTime());
+					//make a separate query for database interactive stability
+					obj = JSON.parse('{"hyper":[{"UPDATE":0, "address":0}]}');
+					obj.hyper[0]['UPDATE'] = hyper[cur].id;
+					obj.hyper[0]['address'] = hyper[cur].address;
+					$.ajax({
+						url : window.location.pathname + "ajax.php",
+						data : escape(JSON.stringify(obj)),
+						type : "PUT",
+						success: function() {
+							hyper[cur].image = scapLocation(hyper[cur].id);
+							$('#hyper' + hyper[cur].id + ' > > img').attr('src', hyper[cur].image + '#' + new Date().getTime());
+						}
+					});
+					/*********************************************************/
 				}
 				else
 					console.log("Data passed was not valid JSON or received no data");
