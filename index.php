@@ -22,15 +22,6 @@ $STH->execute($data);
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<!--caching control-->
-		<meta http-equiv="cache-control" content="max-age=0" />
-		<meta http-equiv="cache-control" content="no-cache" />
-		<meta http-equiv="cache-control" content="no-store" />
-		<meta http-equiv="cache-control" content="private" />
-		<meta http-equiv="cache-control" content="must-revalidate" />
-		<meta http-equiv="expires" content="0" />
-		<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-		<meta http-equiv="pragma" content="no-cache" />
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>New Tab()</title>
 		<link rel="stylesheet" href="bs/css/bootstrap.min.css">
@@ -46,8 +37,11 @@ $STH->execute($data);
 					<img class="centered center-block" src="image URL" draggable=false />
 					<p class="text-center">description</p>
 				</a>
-			</div>
+			</div>-->
 			<!--dynamically built-->
+			<img src="images/loading.svg" hidden />
+			<!--attribution: Brent Jackson
+			http://jxnblk.com -->
 		</div>
 
 		<!--modal-->
@@ -86,11 +80,11 @@ $STH->execute($data);
 						</div>
 					</div>
 				</div>
-				<div class="g-recaptcha center" data-sitekey="6LfQ6gQTAAAAAPQm0vvxhSq1xuUdKdCmevRg_GgN"></div>
+				<!--<div class="g-recaptcha center" data-sitekey="6LfQ6gQTAAAAAPQm0vvxhSq1xuUdKdCmevRg_GgN"></div>-->
 				
 			  </div>
 			  <div class="modal-footer">
-				<button type="button" id="add_hyper" class="btn btn-primary" data-dismiss="modal">
+				<button type="button" id="add_hyper" class="btn btn-primary">
 					<span class="glyphicon glyphicon-plus" aria-hidden="true">New</span>
 				</button>
 				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -166,14 +160,13 @@ $STH->execute($data);
 					<!--dynamically built-->
 				</tbody>
 			</table>
+			<audio id="audio" src="ding.mp3" type="audio/mpeg"><!--not supported in firefox-->
+				Your browser does not support the <code>audio</code> element.
+				<!--attribution: corsica_s / Tim Kahn on freesound.org via Creative Commons license 
+				https://www.freesound.org/people/Corsica_S/sounds/91926/ -->
+			</audio>
 		</div>
-		
-		<audio id="audio" src="ding.mp3" type="audio/mpeg"><!--not supported in firefox-->
-			Your browser does not support the <code>audio</code> element.
-			<!--attribution: corsica_s / Tim Kahn on freesound.org via Creative Commons license 
-			https://www.freesound.org/people/Corsica_S/sounds/91926/ -->
-		</audio>
-		
+
 		<!--bottom navbar-->
 		<nav class="navbar navbar-default navbar-fixed-bottom">
 			<div class="container-fluid">
@@ -199,7 +192,7 @@ $STH->execute($data);
 		</nav>
 
 <!--********************************************************************************************-->
-		<script src='https://www.google.com/recaptcha/api.js'></script>
+		<!--<script src='https://www.google.com/recaptcha/api.js'></script>-->
 		<script src="jscolor/jscolor.js"></script>
 		<script src="jquery-2.1.3.js"></script>
 		<script src="bs/js/bootstrap.js"></script>
