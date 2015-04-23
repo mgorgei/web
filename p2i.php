@@ -61,12 +61,11 @@ function call_p2i($url, $id)
                     // do something with finished. For example, show this image
                     //echo "<img src='$json_data->image_url'>";
                     // Or you can download the image from our server
-					$remote_shot = file_get_contents($json_data->image_url);//urlencode
+					$remote_shot = file_get_contents($json_data->image_url);
 					//write to the root directory's /scaps directory
 					$location = $_SERVER['DOCUMENT_ROOT'] . '/scaps/' . $id . '.' . $img_format;
 					file_put_contents($location, $remote_shot);
                     $loop_flag = FALSE;
-					usleep(1000000);//one second wait
                     break;
                 case "processing":
                 default:
