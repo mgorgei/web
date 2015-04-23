@@ -110,15 +110,6 @@ elseif (isset($js->hyper)) {
 			$sql = 'SELECT MAX(id) ' .
 				   'FROM `Hyperlink`';
 			$id = $dbh->query($sql)->fetch()['MAX(id)'];
-
-			call_p2i($js->hyper[0]->address, $id);//will know if this passes by having the image on the server
-			//when request returns, rewrite the `image` field so that a proper preview can happen
-			$data = array($id, $id);
-			$STH = $dbh->prepare('UPDATE `Hyperlink` ' .
-								 'SET image = ? ' .
-								 'WHERE id = ?');
-			$STH->execute($data);
-		
 			echo json_encode( array('hyper' => array(array('id' => $id ))));
 			exit();
 		}
@@ -155,7 +146,7 @@ elseif (isset($js->hyper)) {
 			}
 		}
 		//modal update of name and address
-		else {
+		elseif (isset($js->hyper[0]->name) AND isset($js->hyper[0]->address) AND isset($js->hyper[0]->modified)) {
 			if (true) {//presume XSS-checking is going on for now...
 				$data = array($js->hyper[0]->name, $js->hyper[0]->address, $js->hyper[0]->UPDATE);
 				$STH = $dbh->prepare('UPDATE `Hyperlink` ' .
@@ -166,6 +157,18 @@ elseif (isset($js->hyper)) {
 					call_p2i($js->hyper[0]->address, $js->hyper[0]->UPDATE);//will know if this passes by having a modified data changed for the image on the server
 				exit();
 			}
+		}
+		//update of only the screencap
+		elseif (is_numeric($js->hyper[0]->UPDATE) AND isset($js->hyper[0]->address)) {
+			call_p2i($js->hyper[0]->address, $js->hyper[0]->UPDATE);//will know if this passes by having the image on the server
+			//when request returns, rewrite the `image` field so that a proper preview can happen
+			//db update should be unnecessary, but doing it anyway
+			$data = array($js->hyper[0]->UPDATE, $js->hyper[0]->UPDATE);
+			$STH = $dbh->prepare('UPDATE `Hyperlink` ' .
+								 'SET image = ? ' .
+								 'WHERE id = ?');
+			$STH->execute($data);
+			exit();
 		}
 	}
 	//DELETE DELETE //{"hyper":[{"DELETE":"id"}]}
