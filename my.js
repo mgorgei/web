@@ -1,17 +1,18 @@
+"use strict";
 /*Glbl "class"
 */
 function Glbl() {
-	this.testLocal = location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
+	this.testLocal = window.location.hostname === 'localhost';//detects local access to disable ajax calls so I can develop faster with local python implementation
 	this.modalClick = -1;//saves id of modified hyperlink when calling a modal dialog
-	this.gg;//global variable for inspecting objects quickly
-}var glbl = new Glbl();
+	this.gg = null;//global variable for inspecting objects quickly
+} var glbl = new Glbl();
 	
 /*Alarm "class"
 */
 function Alarm() {
 	this.digits = [];//imageData for digits 0-9 and the empty digit(pos 10)
 	this.resetDrawn = [11,12,13,14,15,16];//default state of clock to show everything needs to be redrawn
-	this.lastDrawn = jQuery.extend(true, {}, this.resetDrawn);//index represents position of the last drawn digit (value)//jQuery deep copy
+	this.lastDrawn = $.extend(true, {}, this.resetDrawn);//index represents position of the last drawn digit (value)//jQuery deep copy
 	this.twenty_four_hour_clock = false;
 	this.lengthOfSemiColon = 32;//cannot be measured in the image, so needs to be specified
 	this.timeAlarmExpires = 600;//in seconds
@@ -31,10 +32,10 @@ function Alarm() {
 		digiton:     1, 
 		digitoff:    2};
 	Object.freeze(this.colorEnum);//closest implementation to enum available
-	this.clockIntervalID;//saves id of the interval so that it can be killed later
-	this.canvas;//points to the DOM canvas
-	this.context;//context of the canvas
-	this.base_image;//color-coded image used for drawing the digits in the canvas
+	this.clockIntervalID = null;//saves id of the interval so that it can be killed later
+	this.canvas = null;//points to the DOM canvas
+	this.context = null;//context of the canvas
+	this.base_image = null;//color-coded image used for drawing the digits in the canvas
 }var alarm = new Alarm();
 
 /*Timer "class"
@@ -84,9 +85,9 @@ var hyper = [];
   start identifying self will block events involving itself
 */
 function Drag() {
-	this.start;
-	this.current;
-	this.last;
+	this.start = null;
+	this.current = null;
+	this.last = null;
 }var drag = new Drag();
 
 //gives back the index in the hyperlink object relating to the index parameter that is a unique id in the DOM
@@ -146,13 +147,14 @@ function main() {
 		$('#links').on('dragend', function (e) {//should be a way to refactor this mess...
 			$("#links > *").removeClass('dragStart over');
 			var index = findOwner(drag.start);
+			var i = null;
 			if (drag.current === 'links') {
 				//if the drag is placed within the left / top padding, drop as the first object in the list
 				console.log(e.originalEvent.pageX, e.originalEvent.pageY);
 				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left')) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top'))) {
 					if (hyper[index].linkOrder != 1) {//don't move if the element is already first
-						modifyHyperOrder(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, 1);
-						for (var i = 0; i < hyper.length; i++)
+						modifyHyperOrder(hyper[index].id, hyper[findOwner(drag.start)].linkOrder, 1);
+						for (i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder < hyper[index].linkOrder)
 								hyper[i].linkOrder = hyper[i].linkOrder + 1;
 						hyper[index].linkOrder = 1;
@@ -160,8 +162,8 @@ function main() {
 				}
 				else {//drop as last object in the list
 					if (hyper[index].linkOrder != hyper.length) {
-						modifyHyperOrder(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper.length + 1);
-						for (var i = 0; i < hyper.length; i++)
+						modifyHyperOrder(hyper[index].id, hyper[findOwner(drag.start)].linkOrder, hyper.length + 1);
+						for (i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder > hyper[index].linkOrder)
 								hyper[i].linkOrder = hyper[i].linkOrder - 1;
 						hyper[index].linkOrder = hyper.length;
@@ -172,17 +174,17 @@ function main() {
 				if (drag.current !== drag.start) {
 					var dragged = findOwner(drag.current);
 					var tmp = hyper[dragged].linkOrder;
-					modifyHyperOrder(hyper[index].id, -1, hyper[findOwner(drag.start)].linkOrder, hyper[findOwner(drag.current)].linkOrder);
+					modifyHyperOrder(hyper[index].id, hyper[findOwner(drag.start)].linkOrder, hyper[findOwner(drag.current)].linkOrder);
 					//dragging to a lower element
 					if (hyper[index].linkOrder > hyper[dragged].linkOrder){
-						for (var i = 0; i < hyper.length; i++)
+						for (i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder < hyper[index].linkOrder && hyper[i].linkOrder >= hyper[dragged].linkOrder)
 								hyper[i].linkOrder = hyper[i].linkOrder + 1;
 						hyper[index].linkOrder = tmp;
 					}
 					//dragging to a higher element
 					else {
-						for (var i = 0; i < hyper.length; i++)
+						for (i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder > hyper[index].linkOrder && hyper[i].linkOrder < hyper[dragged].linkOrder)
 								hyper[i].linkOrder = hyper[i].linkOrder - 1;
 						hyper[index].linkOrder = tmp - 1;
@@ -237,7 +239,7 @@ function main() {
 			else
 				modifyHyper(glbl.modalClick);
 			//dismiss modal
-			$('#myModal').modal('hide')
+			$('#myModal').modal('hide');
 		});
 		$("#refresh_hyper").click(getHyper);
 		$("#delete_hyper").click(deleteHyper);
@@ -319,7 +321,7 @@ function drawDigits() {
 		alarm.digits[j].data[i+1] = CSScolor[1];
 		alarm.digits[j].data[i+2] = CSScolor[2];
 		alarm.digits[j].data[i+3] = 255;
-	};
+	}
 	alarm.canvas = document.getElementById("canvas");
 	alarm.context = alarm.canvas.getContext('2d');
 	alarm.base_image = new Image();
@@ -351,7 +353,7 @@ function drawDigits() {
 			}
 		}
 		$("#canvas").triggerHandler("onloadeddata");
-	}
+	};
 	//alarm.base_image.crossOrigin = "use-credentials";//'anonymous';
 	alarm.base_image.src = 'images/digit.png'; //src needs to be specified after onload event
 }
@@ -428,65 +430,28 @@ function identifyPixel(red, green, blue, j) {
 	//fill 8 (semi-colon)
 	if (red == 8 && green == 8 && blue == 8)
 		return alarm.colorEnum.digiton;
-	if (red == 0 && green == 255 && blue == 255)
+	if (red === 0 && green == 255 && blue == 255)
 		return alarm.colorEnum.outline;
 	//background
-	if (red == 0 && green == 255 && blue == 0)
+	if (red === 0 && green == 255 && blue === 0)
 		return alarm.colorEnum.background;
 	return alarm.colorEnum.source;
 }
 
 //updates the canvas to display the current time every ~1000 ms
 function updateClock() {
-	function isLeapYear(year) {
-		if (year % 400 == 0)
-			return true;
-		if (year % 100 == 0)
-			return false;
-		return year % 4 == 0;
-	}
-	function getMonthText(month) {
-		if (month == 0)
-			return 'January';
-		else if (month == 1)
-			return 'February';
-		else if (month == 2)
-			return 'March';
-		else if (month == 3)
-			return 'April';
-		else if (month == 4)
-			return 'May';
-		else if (month == 5)
-			return 'June';
-		else if (month == 6)
-			return 'July';
-		else if (month == 7)
-			return 'August';
-		else if (month == 8)
-			return 'September';
-		else if (month == 9)
-			return 'October';
-		else if (month == 10)
-			return 'November';
-		return 'December';
-	}
 	var d = new Date();
-	var offset =  d.getTimezoneOffset() / 60;
 	var seconds = d.getSeconds();
 	var minutes = d.getMinutes();
 	var hours = d.getHours();
 	if (hours > 12)//cannot find a non-convoluted way of detecting local time (12 or 24 hour clock)
 		hours = hours - 12;
-	if (hours == 0) {
+	if (hours === 0) {
 		if (alarm.twenty_four_hour_clock)
 			hours = 24;
 		else
 			hours = 12;
 	}
-	var day = d.getDate();
-	var month = d.getMonth();
-	var year = d.getFullYear();
-	var monthText = getMonthText(month);
 	var fillColor = $(".digitBackground").css("color").slice(4, -1).split(',');
 	alarm.context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
 	var divChange = alarm.lastDrawn[0] === alarm.resetDrawn[0];
@@ -537,7 +502,7 @@ function updateClock() {
 		//seconds
 		if (true) { //remove seconds conditionally if screen width on canvas won't scale down nicely
 			if (alarm.lastDrawn[4] != Math.floor(seconds / 10)) {
-				alarm.lastDrawn[4] = Math.floor(seconds / 10)
+				alarm.lastDrawn[4] = Math.floor(seconds / 10);
 				alarm.context.putImageData(alarm.digits[alarm.lastDrawn[4]], alarm.digits[0].width * 4, 0);
 				alarm.context.fillRect(alarm.digits[0].width * 5 - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
 			}
@@ -585,11 +550,12 @@ function canvasColor(e) {
 	}
 	//determine where you clicked to make context-sensitive color change for css
 	var classes = [".digitOn", ".digitOff", ".digitBackground", ".digitOutline"];
+	var i = null;
 	if (e.target.id === 'canvas') {
 		var x = Math.floor(e.pageX - $(e.target).offset().left);
 		var y = Math.floor(e.pageY - $(e.target).offset().top);
 		var sample = alarm.context.getImageData(x, y, 1, 1).data;
-		for (var i = 0; i < classes.length; i++)
+		for (i = 0; i < classes.length; i++)
 			if (match(classes[i])) {
 				break;
 			}
@@ -610,9 +576,9 @@ function canvasColor(e) {
 */
 function validateInput() {
 	function vi(i, jq){//make sure input is set to a number and is within the valid range
-		return (isNaN(i) || i == "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
+		return (isNaN(i) || i === "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
 	}
-	function getValue(jq){//get the value; if is not valid, set the form to 0; return the value on the form
+	function getValue(jq) {//get the value; if is not valid, set the form to 0; return the value on the form
 		var value = $(jq).val();
 		if (vi(value, jq)) {
 			if (!alarm.procTab) {
@@ -629,36 +595,36 @@ function validateInput() {
 		}
 		return value;
 	}
+	function checkTab() {//check who has focus here to validate and move onto another input based on the range or procTab
+		var tmp = null;
+		var tenDigit = 2;//for hours (2_), for minutes and seconds (5_)
+		var elems = ["timer_hours", "timer_minutes", "timer_seconds", "add_timer"];
+		var vars = ['lastHH', 'lastMM', 'lastSS'];
+		for (var i = 0; i < elems.length - 1; i++) {//don't check 'add_timer'
+			if ($(document.activeElement).prop("id") === elems[i]) {
+				tmp = getValue('#' + elems[i]).toString().substr(-2);
+				console.log(elems[i], tmp, tenDigit);
+				if ((tmp > tenDigit && tmp < 10) || (tmp.length >= 2) || alarm.procTab) {
+					if (i !== 2)
+						$('#' + elems[i + 1]).select();//select the text an focus the next tabbed element
+					else
+						$('#' + elems[i + 1]).focus();
+				}
+				alarm.procTab=false;
+				alarm[vars[i]] = tmp;//typing ':' clears the input, so the old input needs to be saved for later
+				break;
+			}
+			tenDigit = 5;//instead of conditionally checking something true 2/3 of the time, this is computationally cheaper
+		}
+	}
 	console.log($("#timer_hours").val(), $("#timer_minutes").val(), $("#timer_seconds").val());
-	var HH = getValue("#timer_hours");
-	var MM = getValue("#timer_minutes");
-	var SS = getValue("#timer_seconds");
-	//check who has focus here to validate and move onto another input based on the range or procTab
-	if ($(document.activeElement).prop("id") == "timer_hours") {
-		var tmp = HH.toString().substr(-2);
-		if ((tmp > 2 && tmp < 10) || (tmp.length == 2) || alarm.procTab)
-			$('#timer_minutes').select();
-		alarm.procTab=false;
-		alarm.lastHH = tmp;
-	}
-	else if ($(document.activeElement).prop("id") == "timer_minutes") {
-		var tmp = MM.toString().substr(-2);
-		if ((tmp > 5 && tmp < 10) || (tmp.length == 2) || alarm.procTab)
-			$('#timer_seconds').select();
-		alarm.procTab=false;
-		alarm.lastMM = tmp;
-	}
-	else if ($(document.activeElement).prop("id") == "timer_seconds") {
-		var tmp = SS.toString().substr(-2);
-		if ((tmp > 5 && tmp < 10) || (tmp.length == 2) || alarm.procTab)
-			$('#add_timer').focus();
-		alarm.procTab=false;
-		alarm.lastSS = tmp;
-	}
+	checkTab();
 	//pass user input into new Date object and return the string if it survives
 	var today = new Date();
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
-		('0' + HH.toString()).substr(-2) + ':' + ('0' + MM.toString()).substr(-2) + ':' + ('0' + SS.toString()).substr(-2);
+		('0' + getValue("#timer_hours").toString()).substr(-2) + ':'
+		+ ('0' + getValue("#timer_minutes").toString()).substr(-2) + ':'
+		+ ('0' + getValue("#timer_seconds").toString()).substr(-2);
 	var d = Date.parse(ps);
 	if(! isNaN(d)) {
 		console.log(new Date(d), ps);
@@ -679,7 +645,6 @@ function buildTimerDOM() {
 
 //add recent timer to the DOM
 function addTimerDOM(i) {
-	var type = ['Alarm', 'Stop Watch'];
 	$('#table_body').append("<tr><td>" + timers[i].time.toLocaleTimeString() + "</td><td>" + timeRemaining(timers[i].time.getTime()) + "</td></tr>");
 }
 
@@ -727,7 +692,7 @@ function getTimers() {
 					var obj = JSON.parse(String(data));
 					if ($.isPlainObject(obj)) {
 						for(var i = 0; i < obj.timers.length; i++)
-							timers[i] = new Timer(Date.parse(today + obj.timers[i]['time']), obj.timers[i]['type'], obj.timers[i]['id']);
+							timers[i] = new Timer(Date.parse(today + obj.timers[i].time), obj.timers[i].type, obj.timers[i].id);
 					}
 					else
 						console.log("Data passed was not valid JSON");
@@ -763,7 +728,7 @@ function attemptNewTimer() {
 			if (!glbl.testLocal) {
 				var t = timers[i].time.toTimeString();
 				var obj = JSON.parse('{"timers":[{"CREATE":"time"}]}');
-				obj.timers[0]['CREATE'] = t.substr(0, t.indexOf(' '));
+				obj.timers[0].CREATE = t.substr(0, t.indexOf(' '));
 				$.ajax({
 					url : window.location.pathname + "ajax.php",
 					data : escape(JSON.stringify(obj)),
@@ -772,7 +737,7 @@ function attemptNewTimer() {
 						console.log("success", data);
 						var obj = JSON.parse(String(data));
 						if ($.isPlainObject(obj))
-							timers[0].id = obj.timers[0]['id'];//get back the id that was just created, to avoid getting all information for one op
+							timers[0].id = obj.timers[0].id;//get back the id that was just created, to avoid getting all information for one op
 						else
 							console.log("Data passed was not valid JSON or received no data");
 					},
@@ -795,7 +760,7 @@ function deleteTimer() {
 	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
 		if (!glbl.testLocal) {
 			var obj = JSON.parse('{"timers":[{"DELETE":"id"}]}');
-			obj.timers[0]['DELETE'] = timers[index].id;
+			obj.timers[0].DELETE = timers[index].id;
 			$.ajax({
 				url : window.location.pathname + "ajax.php",
 				data : escape(JSON.stringify(obj)),
@@ -867,7 +832,7 @@ function hoverSVG(event) {
 	//find the child to this li
 	var child = $(this).prop('id');
 	var elem = $(this).find('svg').children('g').children('g').children('circle');
-	elem.css('fill','')//erase so that it can be overridden
+	elem.css('fill','');//erase so that it can be overridden
 	elem.attr("class", "circle");//$.addClass | $.removeClass doesn't behave well with SVG
 	if (event.type !== 'mouseleave')
 		elem.attr("class", child);
@@ -906,7 +871,7 @@ function svgInline(jq) {
 /*hyperlink*******************************************************************/
 //return the screencap's location as a string
 function scapLocation(filename) {
-	return window.location.origin + '/scaps/' + filename + '.jpg'
+	return window.location.origin + '/scaps/' + filename + '.jpg';
 }
 
 //remove all hyperLinks and replace with the ones generated by getHyper into hyper
@@ -962,7 +927,7 @@ function getHyper() {
 				var obj = JSON.parse(String(data));
 				if ($.isPlainObject(obj)) {
 					for(var i = 0; i < obj.hyper.length; i++)
-						hyper[i] = new Hyper(obj.hyper[i]['id'], obj.hyper[i]['name'], obj.hyper[i]['description'], obj.hyper[i]['address'], obj.hyper[i]['image'], +obj.hyper[i]['linkOrder']);
+						hyper[i] = new Hyper(obj.hyper[i].id, obj.hyper[i].name, obj.hyper[i].description, obj.hyper[i].address, obj.hyper[i].image, +obj.hyper[i].linkOrder);
 				}
 				else
 					console.log("Data passed was not valid JSON");
@@ -995,10 +960,10 @@ function modifyHyper() {
 		//show the loading image indicating something is going on
 		$('#hyper' + hyper[glbl.modalClick].id + ' > > img').attr('src', window.location.origin + '/images/loading.svg');
 		var obj = JSON.parse('{"hyper":[{"UPDATE":"id", "name":"", "address":"", "modified":""}]}');
-		obj.hyper[0]['UPDATE'] = hyper[glbl.modalClick].id;
-		obj.hyper[0]['name'] = hyper[glbl.modalClick].name;
-		obj.hyper[0]['address'] = hyper[glbl.modalClick].address;
-		obj.hyper[0]['modified'] = modifiedImage;
+		obj.hyper[0].UPDATE = hyper[glbl.modalClick].id;
+		obj.hyper[0].name = hyper[glbl.modalClick].name;
+		obj.hyper[0].address = hyper[glbl.modalClick].address;
+		obj.hyper[0].modified = modifiedImage;
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
 			data : escape(JSON.stringify(obj)),
@@ -1030,8 +995,9 @@ function modifyHyper() {
 function insertHyper() {
 	var tmp = $("#hyper_entry > ");
 	var r_value = 100000 + Math.floor(Math.random() * 1000000);//temp value, hopefully nevers collides for offline
+	var t_img = null;
 	if (!glbl.testLocal)
-		var t_img = window.location.origin + '/images/loading.svg';
+		t_img = window.location.origin + '/images/loading.svg';
 	else
 		t_img = tmp.find("input[name=hyper_image]").val();
 	hyper[hyper.length] = new Hyper(
@@ -1045,11 +1011,11 @@ function insertHyper() {
 	var cur = hyper.length - 1;
 	if (!glbl.testLocal) {
 		var obj = JSON.parse('{"hyper":[{"CREATE":"id", "name":"", "description":"", "address":"", "image":"", "linkOrder":""}]}');
-		obj.hyper[0]['name'] = hyper[cur].name;
-		obj.hyper[0]['description'] = hyper[cur].description;
-		obj.hyper[0]['address'] = hyper[cur].address;
-		obj.hyper[0]['image'] = hyper[cur].image;
-		obj.hyper[0]['linkOrder'] = hyper[cur].linkOrder;
+		obj.hyper[0].name = hyper[cur].name;
+		obj.hyper[0].description = hyper[cur].description;
+		obj.hyper[0].address = hyper[cur].address;
+		obj.hyper[0].image = hyper[cur].image;
+		obj.hyper[0].linkOrder = hyper[cur].linkOrder;
 		addHyperDOM(cur);//changing order here to be illustrative of how long it takes to load a screencap
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
@@ -1059,12 +1025,12 @@ function insertHyper() {
 				console.log("success", data);
 				obj = JSON.parse(String(data));
 				if ($.isPlainObject(obj)) {
-					hyper[cur].id = obj.hyper[0]['id'];//set the id to the one on the server so that it can be interacted with
+					hyper[cur].id = obj.hyper[0].id;//set the id to the one on the server so that it can be interacted with
 					$('#hyper' + r_value).prop('id', 'hyper' + hyper[cur].id);//this is messy
 					//make a separate query for database interactive stability
 					obj = JSON.parse('{"hyper":[{"UPDATE":0, "address":0}]}');
-					obj.hyper[0]['UPDATE'] = hyper[cur].id;
-					obj.hyper[0]['address'] = hyper[cur].address;
+					obj.hyper[0].UPDATE = hyper[cur].id;
+					obj.hyper[0].address = hyper[cur].address;
 					$.ajax({
 						url : window.location.pathname + "ajax.php",
 						data : escape(JSON.stringify(obj)),
@@ -1095,12 +1061,12 @@ function insertHyper() {
 /*DOM / object swapping takes place in the drag events
   swap the dragged linkOrder value with the dropped linkOrder value
 */
-function modifyHyperOrder(activeID, linkOrder, dragged, dropped) {
+function modifyHyperOrder(activeID, dragged, dropped) {
 	if (!glbl.testLocal) {
 		var obj = JSON.parse('{"hyper":[{"UPDATE":"","dragged":"","dropped":""}]}');
-		obj.hyper[0]['UPDATE'] = activeID;
-		obj.hyper[0]['dragged'] = dragged;
-		obj.hyper[0]['dropped'] = dropped;
+		obj.hyper[0].UPDATE = activeID;
+		obj.hyper[0].dragged = dragged;
+		obj.hyper[0].dropped = dropped;
 		console.log('obj', obj);
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
@@ -1130,7 +1096,7 @@ function deleteHyper() {
 	index = index.replace('hyper', '');
 	if (!glbl.testLocal) {
 		var obj = JSON.parse('{"hyper":[{"DELETE":"id"}]}');
-		obj.hyper[0]['DELETE'] = index;
+		obj.hyper[0].DELETE = index;
 		$.ajax({
 			url : window.location.pathname + "ajax.php",
 			data : escape(JSON.stringify(obj)),
