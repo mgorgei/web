@@ -440,6 +440,14 @@ function identifyPixel(red, green, blue, j) {
 
 //updates the canvas to display the current time every ~1000 ms
 function updateClock() {
+	function drawDigit(fn) {//draws digit if it has been changed since last draw
+		if (alarm.lastDrawn[i] != fn(use)) {
+			alarm.lastDrawn[i] = fn(use);
+			alarm.context.putImageData(alarm.digits[alarm.lastDrawn[i]], alarm.digits[0].width * i, 0);
+			if (i % 2 === 0)//draw over even semi-colons with a blank rectangle to cover them up
+				alarm.context.fillRect(alarm.digits[0].width * (i + 1) - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
+		}
+	}
 	var d = new Date();
 	var seconds = d.getSeconds();
 	var minutes = d.getMinutes();
@@ -457,59 +465,28 @@ function updateClock() {
 	var divChange = alarm.lastDrawn[0] === alarm.resetDrawn[0];
 	//alternate between showing empty digits during an alarm and the real time
 	if (alarm.alarmTriggering && alarm.alarmDraw) {
-		alarm.context.putImageData(alarm.digits[10], 0, 0);
-		alarm.context.putImageData(alarm.digits[10], alarm.digits[0].width * 1, 0);
-		alarm.context.putImageData(alarm.digits[10], alarm.digits[0].width * 2, 0);
-		alarm.context.putImageData(alarm.digits[10], alarm.digits[0].width * 3, 0);
-		alarm.context.putImageData(alarm.digits[10], alarm.digits[0].width * 4, 0);
-		alarm.context.putImageData(alarm.digits[10], alarm.digits[0].width * 5, 0);
-		alarm.context.fillRect(alarm.digits[0].width - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
-		alarm.context.fillRect(alarm.digits[0].width * 3 - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
-		alarm.context.fillRect(alarm.digits[0].width * 5 - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
+		for (var i = 0; i < 6; i++)
+			alarm.context.putImageData(alarm.digits[10], alarm.digits[0].width * i, 0);//empty '8'
+			if (i % 2 === 1)//cover the semi-colon of half the digits
+				alarm.context.fillRect(alarm.digits[0].width * i - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
 		alarm.lastDrawn = jQuery.extend(true, {}, [10,10,10,10,10,10]);
 	}
 	//draw only digits that have changed
 	else {
-		//hours
-		if (hours > 9) {
-			if (alarm.lastDrawn[0] != Math.floor(hours / 10)) {
-				alarm.lastDrawn[0] = Math.floor(hours / 10);
-				alarm.context.putImageData(alarm.digits[alarm.lastDrawn[0]], 0, 0);
-				alarm.context.fillRect(alarm.digits[0].width - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
-			}
-		}
-		else {
-			if (alarm.lastDrawn[0] != 10) {
-				alarm.lastDrawn[0] = 10;
-				alarm.context.putImageData(alarm.digits[alarm.lastDrawn[0]], 0, 0);
-				alarm.context.fillRect(alarm.digits[0].width - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
-			}
-		}
-		if (alarm.lastDrawn[1] != hours % 10) {
-			alarm.lastDrawn[1] = hours % 10;
-			alarm.context.putImageData(alarm.digits[alarm.lastDrawn[1]], alarm.digits[0].width * 1, 0);
-		}
-		//minutes
-		if (alarm.lastDrawn[2] != Math.floor(minutes / 10)) {
-			alarm.lastDrawn[2] = Math.floor(minutes / 10);
-			alarm.context.putImageData(alarm.digits[alarm.lastDrawn[2]], alarm.digits[0].width * 2, 0);
-			alarm.context.fillRect(alarm.digits[0].width * 3 - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
-		}
-		if (alarm.lastDrawn[3] != minutes % 10) {
-			alarm.lastDrawn[3] = minutes % 10;
-			alarm.context.putImageData(alarm.digits[alarm.lastDrawn[3]], alarm.digits[0].width * 3, 0);
-		}
-		//seconds
-		if (true) { //remove seconds conditionally if screen width on canvas won't scale down nicely
-			if (alarm.lastDrawn[4] != Math.floor(seconds / 10)) {
-				alarm.lastDrawn[4] = Math.floor(seconds / 10);
-				alarm.context.putImageData(alarm.digits[alarm.lastDrawn[4]], alarm.digits[0].width * 4, 0);
-				alarm.context.fillRect(alarm.digits[0].width * 5 - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
-			}
-			if (alarm.lastDrawn[5] != seconds % 10) {
-				alarm.lastDrawn[5] = seconds % 10;
-				alarm.context.putImageData(alarm.digits[alarm.lastDrawn[5]], alarm.digits[0].width * 5, 0);//the semi-colon would be truncated by the max length of the canvas
-			}
+		var use = null;
+		var f_even = function (v) { return Math.floor(v / 10); };
+		var f_odd = function (v) { return v % 10; };
+		for (var i = 0; i < 6; i++) {
+			if (i < 2)
+				use = hours;
+			else if (i < 4)
+				use = minutes;
+			else
+				use = seconds;
+			if (i === 0 && use < 10)
+				drawDigit(function () { return 10; });//special case where hours < 10 shows an empty digit
+			else
+				drawDigit(i % 2 ? f_odd : f_even);
 		}
 	}
 	if (divChange) {//paint the surrounding div the same background-color as the canvas
@@ -622,9 +599,9 @@ function validateInput() {
 	//pass user input into new Date object and return the string if it survives
 	var today = new Date();
 	var ps = Number(today.getMonth() + 1) + ' ' + Number(today.getDate()) + ' ' + today.getFullYear() + ' ' + 
-		('0' + getValue("#timer_hours").toString()).substr(-2) + ':'
-		+ ('0' + getValue("#timer_minutes").toString()).substr(-2) + ':'
-		+ ('0' + getValue("#timer_seconds").toString()).substr(-2);
+		('0' + getValue("#timer_hours").toString()).substr(-2) + ':' + 
+		('0' + getValue("#timer_minutes").toString()).substr(-2) + ':' +
+		('0' + getValue("#timer_seconds").toString()).substr(-2);
 	var d = Date.parse(ps);
 	if(! isNaN(d)) {
 		console.log(new Date(d), ps);
