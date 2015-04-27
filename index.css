@@ -21,14 +21,15 @@ body {
 	border: 3px solid rgba(207, 207, 207, 0);
 	transition: transform 0.2s ease-out;
 	transition: opacity 0.2s ease-out;
+	background-clip: padding-box;
 }
 
 #links div:hover{
 	border: 3px dashed #000;
+	background-clip: border-box;
 }
 
 #links h5{
-	/*background-color: #FFF;*/
 	margin: 0;
 }
 
