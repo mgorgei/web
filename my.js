@@ -160,7 +160,7 @@ function main() {
 					}
 				}
 				else {//drop as last object in the list
-					if (hyper[index].linkOrder != hyper.length) {
+					if (hyper[index].linkOrder != hyper.length) {//don't move if the element is already last
 						modifyHyperOrder(hyper[index].id, hyper[findOwner(drag.start)].linkOrder, hyper.length + 1);
 						for (i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder > hyper[index].linkOrder)
@@ -553,6 +553,7 @@ function validateInput() {
 				else //if (jq == "#timer_seconds")
 					$(jq).val(alarm.lastSS);
 		}
+		return value.toString().substr(-2);//untested
 	}
 	function checkTab() {//check who has focus here to validate and move onto another input based on the range or procTab
 		var tmp = null;
@@ -561,6 +562,7 @@ function validateInput() {
 		var vars = ['lastHH', 'lastMM', 'lastSS'];
 		for (var i = 0; i < elems.length - 1; i++) {//don't check 'add_timer'
 			if ($(document.activeElement).prop("id") === elems[i]) {
+				tmp = getValue('#' + elems[i]).toString().substr(-2);
 				console.log(elems[i], tmp, tenDigit);
 				if ((tmp > tenDigit && tmp < 10) || (tmp.length >= 2) || alarm.procTab) {
 					if (i !== 2)
