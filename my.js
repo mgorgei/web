@@ -70,7 +70,6 @@ function Hyper(id, name, description, address, image, linkOrder) {
 	this.name = name;
 	this.description = description;
 	this.address = address;
-	/*if (image !== 'images/google.svg')*/
 	if (!isNaN(image))
 		this.image = scapLocation(image);
 	else
@@ -378,11 +377,11 @@ function reDraw() {
   '0' is requires the regions and matching region-outlines: 1, 2, 3, 4, 5, 6.
 */
 function identifyPixel(red, green, blue, j) {
-	function fp(matching_color, valid_digits, red, green, blue, index) {
+	function fp(matching_color, valid_digits) {//
 		if (red == matching_color && green == matching_color) {//in a region or region-outline
 			var result = false;
 			for (var i = 0; i < valid_digits.length; i++)//go through all digits that needs this region
-				if (index == valid_digits[i]) {
+				if (j == valid_digits[i]) {
 					result = true;
 					break;
 				}
@@ -399,40 +398,26 @@ function identifyPixel(red, green, blue, j) {
 		}
 		return 127; //fail code
 	}
-	//fill 1
-	var x = fp(1, [0, 2, 3, 5, 6, 7, 8, 9], red, green, blue, j);
-	if (x != 127)
-		return x;
-	//fill 2
-	x = fp(2, [0, 1, 2, 3, 4, 7, 8, 9], red, green, blue, j);
-	if (x != 127)
-		return x;
-	//fill 3
-	x = fp(3, [0, 1, 3, 4, 5, 6, 7, 8, 9], red, green, blue, j);
-	if (x != 127)
-		return x;
-	//fill 4
-	x = fp(4, [0, 2, 3, 5, 6, 8, 9], red, green, blue, j);
-	if (x != 127)
-		return x;
-	//fill 5
-	x = fp(5, [0, 2, 6, 8], red, green, blue, j);
-	if (x != 127)
-		return x;
-	//fill 6
-	x = fp(6, [0, 4, 5, 6, 8, 9], red, green, blue, j);
-	if (x != 127)
-		return x;
-	//fill 7
-	x = fp(7, [2, 3, 4, 5, 6, 8, 9], red, green, blue, j);
-	if (x != 127)
-		return x;
-	//fill 8 (semi-colon)
+	var regionMap = [
+	[0, 2, 3, 5, 6, 7, 8, 9],
+	[0, 1, 2, 3, 4, 7, 8, 9],
+	[0, 1, 3, 4, 5, 6, 7, 8, 9],
+	[0, 2, 3, 5, 6, 8, 9],
+	[0, 2, 6, 8],
+	[0, 4, 5, 6, 8, 9],
+	[2, 3, 4, 5, 6, 8, 9]];
+	//fill regions 1 - 7
+	for (var i = 0; i < 7; i++) {
+		var colorCode = fp(i + 1, regionMap[i]);
+		if (colorCode != 127)
+			return colorCode;
+	}
+	//fill region 8 (semi-colon)
 	if (red == 8 && green == 8 && blue == 8)
 		return alarm.colorEnum.digiton;
 	if (red === 0 && green == 255 && blue == 255)
 		return alarm.colorEnum.outline;
-	//background
+	//fill background
 	if (red === 0 && green == 255 && blue === 0)
 		return alarm.colorEnum.background;
 	return alarm.colorEnum.source;
@@ -440,7 +425,7 @@ function identifyPixel(red, green, blue, j) {
 
 //updates the canvas to display the current time every ~1000 ms
 function updateClock() {
-	function drawDigit(fn) {//draws digit if it has been changed since last draw
+	function drawDigit(fn, i) {//draws digit if it has been changed since last draw
 		if (alarm.lastDrawn[i] != fn(use)) {
 			alarm.lastDrawn[i] = fn(use);
 			alarm.context.putImageData(alarm.digits[alarm.lastDrawn[i]], alarm.digits[0].width * i, 0);
@@ -448,32 +433,14 @@ function updateClock() {
 				alarm.context.fillRect(alarm.digits[0].width * (i + 1) - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
 		}
 	}
-	var d = new Date();
-	var seconds = d.getSeconds();
-	var minutes = d.getMinutes();
-	var hours = d.getHours();
-	if (hours > 12)//cannot find a non-convoluted way of detecting local time (12 or 24 hour clock)
-		hours = hours - 12;
-	if (hours === 0) {
-		if (alarm.twenty_four_hour_clock)
-			hours = 24;
-		else
-			hours = 12;
-	}
-	var fillColor = $(".digitBackground").css("color").slice(4, -1).split(',');
-	alarm.context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
-	var divChange = alarm.lastDrawn[0] === alarm.resetDrawn[0];
-	//alternate between showing empty digits during an alarm and the real time
-	if (alarm.alarmTriggering && alarm.alarmDraw) {
+	function flashAlarm() {//alternate between showing empty digits during an alarm and the real time
 		for (var i = 0; i < 6; i++)
 			alarm.context.putImageData(alarm.digits[10], alarm.digits[0].width * i, 0);//empty '8'
 			if (i % 2 === 1)//cover the semi-colon of half the digits
 				alarm.context.fillRect(alarm.digits[0].width * i - alarm.lengthOfSemiColon, 0, alarm.lengthOfSemiColon, alarm.digits[0].height);
 		alarm.lastDrawn = jQuery.extend(true, {}, [10,10,10,10,10,10]);
 	}
-	//draw only digits that have changed
-	else {
-		var use = null;
+	function drawUnchanged() {//draw only digits that have changed
 		var f_even = function (v) { return Math.floor(v / 10); };
 		var f_odd = function (v) { return v % 10; };
 		for (var i = 0; i < 6; i++) {
@@ -484,11 +451,27 @@ function updateClock() {
 			else
 				use = seconds;
 			if (i === 0 && use < 10)
-				drawDigit(function () { return 10; });//special case where hours < 10 shows an empty digit
+				drawDigit(function () { return 10; }, i);//special case where hours < 10 shows an empty digit
 			else
-				drawDigit(i % 2 ? f_odd : f_even);
+				drawDigit(i % 2 ? f_odd : f_even, i);
 		}
 	}
+	var d = new Date();
+	var seconds = d.getSeconds();
+	var minutes = d.getMinutes();
+	var hours = d.getHours();
+	if (hours > 12)//cannot find a non-convoluted way of detecting local time (12 or 24 hour clock)
+		hours = hours - 12;
+	if (hours === 0)
+		hours = 12;
+	var fillColor = $(".digitBackground").css("color").slice(4, -1).split(',');
+	alarm.context.fillStyle = "#" + strToHex(fillColor[0]) + strToHex(fillColor[1]) + strToHex(fillColor[2]);//seems too common to not have a default method...
+	var divChange = alarm.lastDrawn[0] === alarm.resetDrawn[0];
+	var use = null;
+	if (alarm.alarmTriggering && alarm.alarmDraw) 
+		flashAlarm();
+	else
+		drawUnchanged();
 	if (divChange) {//paint the surrounding div the same background-color as the canvas
 		var color = $(".digitBackground").css("color").slice(4, -1).split(',');
 		$(".canvas").css("background-color", "#" + strToHex(color[0]) + strToHex(color[1]) + strToHex(color[2]));
@@ -570,7 +553,6 @@ function validateInput() {
 				else //if (jq == "#timer_seconds")
 					$(jq).val(alarm.lastSS);
 		}
-		return value;
 	}
 	function checkTab() {//check who has focus here to validate and move onto another input based on the range or procTab
 		var tmp = null;
@@ -579,7 +561,6 @@ function validateInput() {
 		var vars = ['lastHH', 'lastMM', 'lastSS'];
 		for (var i = 0; i < elems.length - 1; i++) {//don't check 'add_timer'
 			if ($(document.activeElement).prop("id") === elems[i]) {
-				tmp = getValue('#' + elems[i]).toString().substr(-2);
 				console.log(elems[i], tmp, tenDigit);
 				if ((tmp > tenDigit && tmp < 10) || (tmp.length >= 2) || alarm.procTab) {
 					if (i !== 2)
