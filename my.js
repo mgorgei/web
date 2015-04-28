@@ -45,7 +45,7 @@ type
   0 Alarm
   1 Stop Watch*/
 function Timer(time, type, id) {
-	if (type == 1) {//the time given is milliseconds relative to today, so strip today midnight out to get the time from now that the timer will expire
+	if (type === 1) {//the time given is milliseconds relative to today, so strip today midnight out to get the time from now that the timer will expire
 		var today = new Date();
 		today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
 		this.time = new Date(Date.now() - today.getTime() + new Date(time).getTime());
@@ -92,7 +92,7 @@ function Drag() {
 //gives back the index in the hyperlink object relating to the index parameter that is a unique id in the DOM
 function findOwner(index) {
 	for (var i = 0; i < hyper.length; i++) {
-		if (parseInt(index.slice(5)) === parseInt(hyper[i].id))
+		if (parseInt(index.slice(5), 10) === parseInt(hyper[i].id, 10))
 			return i;
 	}
 }
@@ -103,7 +103,7 @@ function main() {
 	function resizeLabelWidths(jq, what) { //resize all of the labels to the largest (for small width form)
 		var maxLabelWidths = [];
 		$(what, jq).map(function() {
-			maxLabelWidths.push(parseInt($('label[for=' + $(this).prop('id') + ']', jq).css('width')));
+			maxLabelWidths.push(parseInt($('label[for=' + $(this).prop('id') + ']', jq).css('width'), 10));
 		});
 		var maxLabelWidth = Math.max.apply(null, maxLabelWidths);
 		$(what, jq).map(function() {
@@ -132,26 +132,26 @@ function main() {
 				drag.current = $(e.target).parents('div').first()[0].id;
 			}
 			//add class that signifies this element is hovered over to make accurate drops
-			if (drag.start != drag.current && drag.current.slice(0,5) === 'hyper' && drag.current != drag.last) {
+			if (drag.start !== drag.current && drag.current.slice(0,5) === 'hyper' && drag.current !== drag.last) {
 				$('#' + drag.start).insertBefore($('#' + drag.current));
 			}
 			else if (drag.current === 'links')
-				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left')) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top')))
+				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left'), 10) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top'), 10))
 					$('#' + drag.start).insertBefore($('#links').children().first());
 				else
 					$('#' + drag.start).insertAfter($('#links').children().last());
 			drag.last = drag.current;
 		});
 		
-		$('#links').on('dragend', function (e) {//should be a way to refactor this mess...
-			$("#links > *").removeClass('dragStart over');
-			var index = findOwner(drag.start);
-			var i = null;
-			if (drag.current === 'links') {
+		$('#links').on('dragend', function (e) {
+			/*drop target is the hyperlink container; place at the beginning if
+			  within the upper corner of the padding, else place at the end of 
+			  the hyperlinks*/
+			function dropContainer() {
 				//if the drag is placed within the left / top padding, drop as the first object in the list
 				console.log(e.originalEvent.pageX, e.originalEvent.pageY);
-				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left')) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top'))) {
-					if (hyper[index].linkOrder != 1) {//don't move if the element is already first
+				if (e.originalEvent.pageX <= parseInt($('#links').css('padding-left'), 10) || e.originalEvent.pageY <= parseInt($('#links').css('padding-top'), 10)) {
+					if (hyper[index].linkOrder !== 1) {//don't move if the element is already first
 						modifyHyperOrder(hyper[index].id, hyper[findOwner(drag.start)].linkOrder, 1);
 						for (i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder < hyper[index].linkOrder)
@@ -160,7 +160,7 @@ function main() {
 					}
 				}
 				else {//drop as last object in the list
-					if (hyper[index].linkOrder != hyper.length) {//don't move if the element is already last
+					if (hyper[index].linkOrder !== hyper.length) {//don't move if the element is already last
 						modifyHyperOrder(hyper[index].id, hyper[findOwner(drag.start)].linkOrder, hyper.length + 1);
 						for (i = 0; i < hyper.length; i++)
 							if (hyper[i].linkOrder > hyper[index].linkOrder)
@@ -169,7 +169,10 @@ function main() {
 					}
 				}
 			}
-			else {
+			/*drop target is another hyperlink, process the elements inbetween 
+			  links based on the relation of the start and end order of the 
+			  drop*/
+			function dropLinks() {
 				if (drag.current !== drag.start) {
 					var dragged = findOwner(drag.current);
 					var tmp = hyper[dragged].linkOrder;
@@ -189,10 +192,17 @@ function main() {
 						hyper[index].linkOrder = tmp - 1;
 					}
 				}
+			}
+			$("#links > *").removeClass('dragStart over');
+			var index = findOwner(drag.start);
+			var i = null;
+			if (drag.current === 'links')
+				dropContainer();
+			else
+				dropLinks();
 			//find some kind of transition animation for moving the dragged item
 			//$('#' + drag.start).addClass('dragEnd');
 			drag = new Drag();
-			}
 		});
 	}
 	$("#delete_hyper").prop('disabled', true);
@@ -233,7 +243,7 @@ function main() {
 			//accepted
 			if (tmp.toLowerCase().slice(0,7) !== 'http://')
 				 $("#hyper_entry > ").find("input[name=hyper_address]").val('http://' + tmp);
-			if (glbl.modalClick == -1) 
+			if (glbl.modalClick === -1) 
 				insertHyper();
 			else
 				modifyHyper(glbl.modalClick);
@@ -288,15 +298,15 @@ function main() {
 		/*********************************************************************/
 		//make ':' behave as a tab key by capturing simultaneous SHIFT + ';' key presses
 		$("#timer_entry").children().children("input[type=number]").on( "keydown", function( event ) {
-			if (event.which == 16)
+			if (event.which === 16)
 				alarm.shiftKey = true;
-			if (event.which == 186)
+			if (event.which === 186)
 				if (alarm.shiftKey) {
 					alarm.procTab = true;
 				}
 		});
 		$("#timer_entry").children().children("input[type=number]").on( "keyup", function( event ) {
-			if (event.which == 16)
+			if (event.which === 16)
 				alarm.shiftKey = false;
 		});
 		$("#timer_entry").on("input", validateInput);
@@ -339,15 +349,15 @@ function drawDigits() {
 			//fill each pixel with a matching css color
 			for (var i = 0; i < imageData.data.length; i+=4) {
 				var result = identifyPixel(imageData.data[i], imageData.data[i + 1], imageData.data[i + 2], j);
-				if (result == alarm.colorEnum.digiton)
+				if (result === alarm.colorEnum.digiton)
 					fill(i, j, colorDigit);
-				else if (result == alarm.colorEnum.digitoff)
+				else if (result === alarm.colorEnum.digitoff)
 					fill(i, j, colorDigitOff);
-				else if (result == alarm.colorEnum.background)
+				else if (result === alarm.colorEnum.background)
 					fill(i, j, colorBackground);
-				else if (result == alarm.colorEnum.outline)
+				else if (result === alarm.colorEnum.outline)
 					fill(i, j, colorOutline);
-				else //  result == alarm.colorEnum.source
+				else //  result === alarm.colorEnum.source
 					fill(i, j, imageData.data.splice(i, i + 3));//source is a fallback now since the entire image is tagged
 			}
 		}
@@ -378,20 +388,20 @@ function reDraw() {
 */
 function identifyPixel(red, green, blue, j) {
 	function fp(matching_color, valid_digits) {//
-		if (red == matching_color && green == matching_color) {//in a region or region-outline
+		if (red === matching_color && green === matching_color) {//in a region or region-outline
 			var result = false;
 			for (var i = 0; i < valid_digits.length; i++)//go through all digits that needs this region
-				if (j == valid_digits[i]) {
+				if (j === valid_digits[i]) {
 					result = true;
 					break;
 				}
 			if (result) {//the current digit needs this region
-				if (blue == matching_color)//is this a region (true) or region-outline
+				if (blue === matching_color)//is this a region (true) or region-outline
 					return alarm.colorEnum.digiton;
 				return alarm.colorEnum.outline;
 			}
 			else {
-				if (blue == matching_color)//is this a region (true) or region-outline
+				if (blue === matching_color)//is this a region (true) or region-outline
 					return alarm.colorEnum.digitoff;
 				return alarm.colorEnum.background;//the digitoff outline does not have a unique color
 			}
@@ -409,16 +419,16 @@ function identifyPixel(red, green, blue, j) {
 	//fill regions 1 - 7
 	for (var i = 0; i < 7; i++) {
 		var colorCode = fp(i + 1, regionMap[i]);
-		if (colorCode != 127)
+		if (colorCode !== 127)
 			return colorCode;
 	}
 	//fill region 8 (semi-colon)
-	if (red == 8 && green == 8 && blue == 8)
+	if (red === 8 && green === 8 && blue === 8)
 		return alarm.colorEnum.digiton;
-	if (red === 0 && green == 255 && blue == 255)
+	if (red === 0 && green === 255 && blue === 255)
 		return alarm.colorEnum.outline;
 	//fill background
-	if (red === 0 && green == 255 && blue === 0)
+	if (red === 0 && green === 255 && blue === 0)
 		return alarm.colorEnum.background;
 	return alarm.colorEnum.source;
 }
@@ -426,7 +436,7 @@ function identifyPixel(red, green, blue, j) {
 //updates the canvas to display the current time every ~1000 ms
 function updateClock() {
 	function drawDigit(fn, i) {//draws digit if it has been changed since last draw
-		if (alarm.lastDrawn[i] != fn(use)) {
+		if (alarm.lastDrawn[i] !== fn(use)) {
 			alarm.lastDrawn[i] = fn(use);
 			alarm.context.putImageData(alarm.digits[alarm.lastDrawn[i]], alarm.digits[0].width * i, 0);
 			if (i % 2 === 0)//draw over even semi-colons with a blank rectangle to cover them up
@@ -536,7 +546,7 @@ function canvasColor(e) {
 */
 function validateInput() {
 	function vi(i, jq){//make sure input is set to a number and is within the valid range
-		return (isNaN(i) || i === "" || parseInt(i) < $(jq).prop("min") || parseInt(i) > $(jq).prop("max") || i.indexOf('.') != -1);
+		return (isNaN(i) || i === "" || parseInt(i, 10) < $(jq).prop("min") || parseInt(i, 10) > $(jq).prop("max") || i.indexOf('.') !== -1);
 	}
 	function getValue(jq) {//get the value; if is not valid, set the form to 0; return the value on the form
 		var value = $(jq).val();
@@ -546,11 +556,11 @@ function validateInput() {
 				return 0;
 			}
 			else//set input to last valid value if ':' was pressed
-				if (jq == "#timer_hours")
+				if (jq === "#timer_hours")
 					$(jq).val(alarm.lastHH);
-				else if (jq == "#timer_minutes")
+				else if (jq === "#timer_minutes")
 					$(jq).val(alarm.lastMM);
-				else //if (jq == "#timer_seconds")
+				else //if (jq === "#timer_seconds")
 					$(jq).val(alarm.lastSS);
 		}
 		return value.toString().substr(-2);//untested
@@ -679,7 +689,7 @@ function attemptNewTimer() {
 		var dupe = false;
 		//check for existing duplicates in UI, delete them if they exist
 		for (var i = 0; i < timers.length - 1; i++)
-			if (timers[i].time.getTime() == timers[timers.length - 1].time.getTime() && timers[i].type == timers[timers.length - 1].type) {
+			if (timers[i].time.getTime() === timers[timers.length - 1].time.getTime() && timers[i].type === timers[timers.length - 1].type) {
 				timers.splice(timers.length - 1, 1);
 				dupe = true;
 				break;//should only have one dupe at least locally; also not designed to properly navigate the loop using this structure after a deletion
@@ -717,7 +727,7 @@ function attemptNewTimer() {
 //delete selected timers[index] and disable the delete_timer button because nothing is selected in the table
 function deleteTimer() {
 	var index = $(".timer_table_selected").index();
-	if (index != -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
+	if (index !== -1) {//index 0 doesn't get the timer_table_selected class, so not subject to deletion
 		if (!glbl.testLocal) {
 			var obj = JSON.parse('{"timers":[{"DELETE":"id"}]}');
 			obj.timers[0].DELETE = timers[index].id;
