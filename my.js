@@ -494,7 +494,7 @@ function canvasColor(e) {
 	function match(cssClass) {//find the first css class color that matches the pixel that was clicked
 		var color = $(cssClass).css("color").slice(4, -1).split(',');
 		for (var i = 0; i < 3; i++)
-			if (color[i] != sample[i])
+			if (parseInt(color[i], 10) !== sample[i])
 				return false;
 		return true;
 	}
